@@ -1,13 +1,16 @@
-import { useState } from "react";
-import { ShoppingCart, User, UploadCloud, Plus, Minus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ShoppingCart, User, Plus, Minus } from "lucide-react";
+import LogoutButton from "./LogoutButton";
+import { useOrder } from "../context/OrderContext"; // ✅ Use unified order context
+import { Link } from "react-router-dom";
 
-export default function XeroxOrderPlatform() {
-  const [files, setFiles] = useState([]);
-  const [recordPapers, setRecordPapers] = useState(1);
+export default function PrintOptions() {
+  const { order, updateOrder } = useOrder(); // ✅ Get order & updateOrder from global context
+  const navigate = useNavigate();
 
   const handleFileUpload = (event) => {
     const uploadedFiles = Array.from(event.target.files);
-    setFiles(uploadedFiles);
+    updateOrder({ files: uploadedFiles });
   };
 
   return (
@@ -41,14 +44,24 @@ export default function XeroxOrderPlatform() {
             <span className="text-lg">Record Papers</span>
             <button
               className="btn btn-circle btn-outline"
-              onClick={() => setRecordPapers(recordPapers > 1 ? recordPapers - 1 : 1)}
+              onClick={() =>
+                updateOrder({
+                  recordPapers: Math.max(0, order.recordPapers - 1),
+                })
+              }
             >
               <Minus size={16} />
             </button>
-            <span className="text-lg font-semibold">{recordPapers}</span>
+            <span className="text-lg font-semibold">
+              {order.recordPapers}
+            </span>
             <button
               className="btn btn-circle btn-outline"
-              onClick={() => setRecordPapers(recordPapers + 1)}
+              onClick={() =>
+                updateOrder({
+                  recordPapers: order.recordPapers + 1,
+                })
+              }
             >
               <Plus size={16} />
             </button>
@@ -57,13 +70,31 @@ export default function XeroxOrderPlatform() {
           {/* Front Papers for Records */}
           <div className="flex items-center gap-4">
             <span className="text-lg">Front Papers for Records</span>
-            <button className="btn btn-primary">Select</button>
+            <button
+              className={`btn ${
+                order.frontPapers ? "btn-success" : "btn-primary"
+              }`}
+              onClick={() =>
+                updateOrder({ frontPapers: !order.frontPapers })
+              }
+            >
+              {order.frontPapers ? "Selected" : "Select"}
+            </button>
           </div>
 
           {/* Graphs */}
           <div className="flex items-center gap-4">
             <span className="text-lg">Graphs</span>
-            <button className="btn btn-primary">Select</button>
+            <button
+              className={`btn ${
+                order.graphs ? "btn-success" : "btn-primary"
+              }`}
+              onClick={() =>
+                updateOrder({ graphs: !order.graphs })
+              }
+            >
+              {order.graphs ? "Selected" : "Select"}
+            </button>
           </div>
         </div>
       </div>
@@ -71,8 +102,11 @@ export default function XeroxOrderPlatform() {
       {/* Bottom Section */}
       <div className="flex justify-between mt-4">
         <button className="btn btn-success">Add Order</button>
-        <button className="btn btn-warning">Go to Cart</button>
+        <Link to="/cart">
+          <button className="btn btn-warning">Go to Cart</button>
+        </Link>
       </div>
+      <LogoutButton />
     </div>
   );
 }

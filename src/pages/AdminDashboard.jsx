@@ -1,18 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { User } from "lucide-react";
 
 const AdminDashboard = () => {
+  const [orders, setOrders] = useState([]);
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
-  const [orders, setOrders] = useState([
-    { id: 1, time: "10:00 AM", done: false },
-    { id: 2, time: "10:30 AM", done: false },
-    { id: 3, time: "11:00 AM", done: false },
-  ]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/orders/admin", {
+          credentials: "include",
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setOrders(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch orders", error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const markOrderAsDone = (orderId) => {
     setOrders(
-      orders.map(order =>
-        order.id === orderId ? { ...order, done: true } : order
+      orders.map((order) =>
+        order._id === orderId ? { ...order, status: "Completed" } : order
       )
     );
   };
@@ -20,12 +34,12 @@ const AdminDashboard = () => {
   return (
     <div className="flex flex-col items-center p-4">
       {/* Navigation Bar */}
-      <div className="flex justify-between items-center w-full max-w-md mb-4">
+      <div className="flex justify-between items-center w-full max-w-4xl mb-4">
         <User className="w-6 h-6 cursor-pointer" />
-        <h1 className="text-xl font-bold">ZEROX</h1>
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       </div>
 
-      {/* Start / Stop Buttons */}
+      {/* Start / Stop Order Processing Buttons */}
       <div className="flex space-x-4 mb-4">
         <button
           className="btn btn-success w-1/2"
@@ -41,31 +55,45 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* Orders List */}
-      <div className="card w-full max-w-md bg-base-100 shadow-xl p-4">
-        <div className="card-body">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="card-title text-lg">Pending Orders</h2>
-            <span className="badge badge-neutral">Total: {orders.length}</span>
-          </div>
-
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className={`flex justify-between items-center p-2 mb-2 border rounded ${
-                order.done ? "bg-green-300" : "bg-red-300"
-              }`}
-            >
-              <span>Order #{order.id} - Due: {order.time}</span>
-              <button
-                onClick={() => markOrderAsDone(order.id)}
-                className="btn btn-primary btn-sm"
-              >
-                {order.done ? "Completed" : "Done"}
-              </button>
-            </div>
-          ))}
-        </div>
+      {/* Orders Table */}
+      <div className="overflow-x-auto w-full max-w-4xl">
+        <table className="w-full border-collapse border border-gray-300 text-black">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border p-2">User</th>
+              <th className="border p-2">Files</th>
+              <th className="border p-2">Copies</th>
+              <th className="border p-2">Print Type</th>
+              <th className="border p-2">Color</th>
+              <th className="border p-2">Status</th>
+              <th className="border p-2">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => (
+              <tr key={order._id} className={order.status === "Completed" ? "bg-green-200" : ""}>
+                <td className="border p-2">{order.user?.email}</td>
+                <td className="border p-2">{order.files.length}</td>
+                <td className="border p-2">{order.copyNumber}</td>
+                <td className="border p-2">{order.printType}</td>
+                <td className="border p-2">{order.colorOption}</td>
+                <td className="border p-2">{order.status}</td>
+                <td className="border p-2">
+                  {order.status !== "Completed" ? (
+                    <button
+                      onClick={() => markOrderAsDone(order._id)}
+                      className="btn btn-primary btn-sm"
+                    >
+                      Complete
+                    </button>
+                  ) : (
+                    <span className="text-green-600 font-bold">Done</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
