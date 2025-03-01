@@ -8,9 +8,8 @@ export default function PrintOptions() {
   const { order, updateOrder } = useOrder(); // ✅ Get order & updateOrder from global context
   const navigate = useNavigate();
 
-  const handleFileUpload = (event) => {
-    const uploadedFiles = Array.from(event.target.files);
-    updateOrder({ files: uploadedFiles });
+  const handleFileUpload = () => {
+    navigate("/upload");
   };
 
   return (
@@ -28,15 +27,11 @@ export default function PrintOptions() {
           {/* Print PDF */}
           <div className="flex items-center gap-4">
             <span className="text-lg">Print PDF</span>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="fileUpload"
-            />
-            <label htmlFor="fileUpload" className="btn btn-outline">
+            <button
+              onClick={handleFileUpload}
+            className="btn btn-outline">
               Add PDF
-            </label>
+            </button>
           </div>
 
           {/* Record Papers */}
@@ -75,7 +70,8 @@ export default function PrintOptions() {
                 order.frontPapers ? "btn-success" : "btn-primary"
               }`}
               onClick={() =>
-                updateOrder({ frontPapers: !order.frontPapers })
+                {navigate("/department")
+                updateOrder({ frontPapers: !order.frontPapers })}
               }
             >
               {order.frontPapers ? "Selected" : "Select"}
@@ -83,7 +79,7 @@ export default function PrintOptions() {
           </div>
 
           {/* Graphs */}
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <span className="text-lg">Graphs</span>
             <button
               className={`btn ${
@@ -95,15 +91,15 @@ export default function PrintOptions() {
             >
               {order.graphs ? "Selected" : "Select"}
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
 
       {/* Bottom Section */}
       <div className="flex justify-between mt-4">
         <button className="btn btn-success">Add Order</button>
-        <Link to="/cart">
-          <button className="btn btn-warning">Go to Cart</button>
+        <Link to="/settings">
+          <button className="btn btn-warning">Next</button>
         </Link>
       </div>
       <LogoutButton />

@@ -63,7 +63,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
 // ✅ Serve Uploaded Files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/C:/Users/csidd/OneDrive/Desktop/zerox/backend/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ Serve Frontend in Production
 if (!isDev) {

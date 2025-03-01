@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useOrder } from "../context/OrderContext";
 
 const departments = [
   "Chemical Engineering",
@@ -12,15 +13,22 @@ const departments = [
 ];
 
 const SelectDepartment = () => {
-  const [departmentCounts, setDepartmentCounts] = useState(
-    departments.reduce((acc, dept) => ({ ...acc, [dept]: 0 }), {})
-  );
+  const navigate = useNavigate();
+  const { order, updateOrder } = useOrder();
+  const departmentCounts = order.departments || {}; // Get existing data
 
   const updateCount = (dept, increment) => {
-    setDepartmentCounts((prev) => ({
-      ...prev,
-      [dept]: Math.max(0, prev[dept] + increment),
-    }));
+    const newCount = Math.max(0, (departmentCounts[dept] || 0) + increment);
+    updateOrder({ departments: { ...departmentCounts, [dept]: newCount } });
+  };
+
+  const handleNext = () => {
+    updateOrder({ departments: departmentCounts });
+
+    // Ensure state updates before navigating
+    setTimeout(() => {
+      navigate("/");
+    }, 100); // Delay to ensure state update
   };
 
   return (
@@ -30,20 +38,17 @@ const SelectDepartment = () => {
 
         {departments.map((dept) => (
           <div key={dept} className="flex justify-between items-center mb-3">
-            <div className="text-lg whitespace-nowrap font-semibold text-gray-700">{dept}</div>
+            <div className="text-lg font-semibold text-gray-700">{dept}</div>
             <div>
               <button className="btn btn-neutral m-4" onClick={() => updateCount(dept, -1)}>-</button>
-              {departmentCounts[dept]}
+              {departmentCounts[dept] || 0}
               <button className="btn btn-neutral m-4" onClick={() => updateCount(dept, 1)}>+</button>
             </div>
           </div>
         ))}
 
-        {/* Next Button */}
         <div className="mt-4">
-          <a href="/cart">
-            <button className="btn btn-neutral">Next</button>
-          </a>
+          <button className="btn btn-neutral" onClick={handleNext}>Next</button>
         </div>
       </div>
     </div>

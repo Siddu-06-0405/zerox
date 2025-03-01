@@ -1,25 +1,37 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useOrder } from "../context/OrderContext";
 
 const UploadPdf = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const { order, updateOrder } = useOrder();
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const navigate = useNavigate();
 
+  // Handle file selection
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+    const files = Array.from(event.target.files); // Convert FileList to Array
+    if (files.length > 0) {
+      setSelectedFiles((prevFiles) => [...prevFiles, ...files]); // Append new files
+    }
   };
 
+  // Handle file submission
   const handleSubmit = () => {
-    if (!selectedFile) {
-      alert("Please select a file before submitting.");
+    if (selectedFiles.length === 0) {
+      alert("Please select at least one file before submitting.");
       return;
     }
 
-    // Store file temporarily (or send it to a backend if needed)
-    localStorage.setItem("uploadedFile", selectedFile.name);
+    // Update order context with selected files & count
+    updateOrder({ 
+      files: [...order.files, ...selectedFiles], 
+      pdfCount: order.pdfCount + selectedFiles.length 
+    });
 
-    // Navigate to the next page
-    navigate("/department");
+    // Ensure state updates before navigating
+    setTimeout(() => {
+      navigate("/");
+    }, 100);
   };
 
   return (
@@ -30,6 +42,7 @@ const UploadPdf = () => {
           <input 
             type="file" 
             accept=".pdf" 
+            multiple // ✅ Allow multiple file selection
             onChange={handleFileChange} 
             className="hidden" 
             id="file-upload"
@@ -40,13 +53,24 @@ const UploadPdf = () => {
           >
             Choose Files
           </label>
-          <span>{selectedFile ? selectedFile.name : "No file chosen"}</span>
         </div>
-        {!selectedFile && <p className="mt-2 text-red-500">No files uploaded</p>}
-        <br />
+        
+        {/* Display selected file names */}
+        <div className="mt-2">
+          {selectedFiles.length > 0 ? (
+            <ul className="text-sm text-gray-800">
+              {selectedFiles.map((file, index) => (
+                <li key={index}>{file.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-red-500">No files uploaded</p>
+          )}
+        </div>
+
         <button 
           onClick={handleSubmit} 
-          className="btn btn-soft btn-secondary"
+          className="btn btn-soft btn-secondary mt-4"
         >
           Submit Files
         </button>

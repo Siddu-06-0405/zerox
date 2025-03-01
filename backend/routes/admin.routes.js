@@ -1,10 +1,13 @@
 import express from "express";
 import { getOrders, updateOrderStatus } from "../controllers/order.controller.js";
-import {protectRoute} from "../middleware/protectRoute.js"; // Ensure only admins can access
+import { protectAdmin } from "../middleware/protectAdmin.js"; 
 
 const router = express.Router();
 
-router.get("/orders", protectRoute, getOrders);
-router.put("/orders/:orderId", protectRoute, updateOrderStatus);
+// ✅ Get All Orders (Admin Only)
+router.get("/orders", protectAdmin, getOrders);
+
+// ✅ Update Order Status
+router.put("/orders/:orderId", protectAdmin, updateOrderStatus);
 
 export default router;

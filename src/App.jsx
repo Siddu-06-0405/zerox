@@ -28,7 +28,7 @@ const App = () => {
         <Route path="/upload" element={authUser ? <UploadPdf /> : <Navigate to="/login" />} />
         <Route path="/department" element={authUser ? <SelectDepartment /> : <Navigate to="/login" />} />
         <Route path="/cart" element={authUser ? <YourCart /> : <Navigate to="/login" />} />
-        <Route path="/admin" element={authUser ? <AdminDashboard /> : <Navigate to="/login" />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
       <Toaster />
     </>
