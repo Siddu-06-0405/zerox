@@ -27,7 +27,7 @@ const SelectDepartment = () => {
 
     // Ensure state updates before navigating
     setTimeout(() => {
-      navigate("/");
+      navigate("/options");
     }, 100); // Delay to ensure state update
   };
 

@@ -1,22 +1,34 @@
-export const protectAdmin = (req, res, next) => {
-    const adminUsername = process.env.ADMIN_USERNAME || "admin";
-    const adminPassword = process.env.ADMIN_PASSWORD || "123456";
-  
-    const authHeader = req.headers.authorization;
-  
-    if (!authHeader || !authHeader.startsWith("Basic ")) {
-      return res.status(401).json({ message: "Unauthorized - No credentials provided" });
+import jwt from 'jsonwebtoken';
+import Admin from '../models/admin.model.js';
+
+export const protectAdmin = async (req, res, next) => {
+    try {
+        let token = req.cookies.jwt; // Try to get token from cookies
+
+        if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+            token = req.headers.authorization.split(" ")[1]; // Try to get token from headers
+        }
+
+        if (!token) {
+            return res.status(401).json({ msg: "Unauthorized - No token provided" });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
+
+        if (!decoded) {
+            return res.status(401).json({ msg: "Unauthorized - Invalid token" });
+        }
+
+        const user = await Admin.findById(decoded.userId).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        req.user = user;
+        next();
+    } catch (error) {
+        console.log("Error in protectAdmin middleware:", error.message);
+        res.status(500).json({ error: "Internal server error" });
     }
-  
-    // Extract Base64 encoded credentials
-    const base64Credentials = authHeader.split(" ")[1];
-    const credentials = Buffer.from(base64Credentials, "base64").toString("utf-8");
-    const [username, password] = credentials.split(":");
-  
-    if (username === adminUsername && password === adminPassword) {
-      return next();
-    } else {
-      return res.status(403).json({ message: "Access denied - Invalid admin credentials" });
-    }
-  };
-  
+};

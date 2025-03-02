@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Plus, Minus } from "lucide-react";
-import LogoutButton from "./LogoutButton";
 import { useOrder } from "../context/OrderContext"; // ✅ Use unified order context
 import { Link } from "react-router-dom";
 
@@ -102,7 +101,6 @@ export default function PrintOptions() {
           <button className="btn btn-warning">Next</button>
         </Link>
       </div>
-      <LogoutButton />
     </div>
   );
 }

@@ -11,7 +11,6 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 import authRoutes from "./routes/auth.routes.js";
-import userRoutes from "./routes/user.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import connectToMongoDB from "./db/connectToMongoDB.js";
@@ -58,9 +57,10 @@ const upload = multer({ storage });
 
 // ✅ API Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
+
+app.use("/files", express.static(path.join(__dirname, "files")));
 
 // ✅ Serve Uploaded Files
 app.use("/C:/Users/csidd/OneDrive/Desktop/zerox/backend/uploads", express.static(path.join(__dirname, "uploads")));
