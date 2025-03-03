@@ -6,11 +6,11 @@ const Home = (props) => {
   return (
     <div className="mt-4">
       <LogoutButton />
-      {props.messages?<button className="btn btn-success">Services Unavailable</button>:<div><button className="btn btn-success">Accepting Orders</button>
+      {props.messages===false?<button className="btn btn-success">Services Unavailable</button>:<div><button className="btn btn-success">Accepting Orders</button>
       <Link to="/options">
         <button className="btn btn-warning">Use printing services</button>
       </Link>
-      <Link to="/options">
+      <Link to="/ongoing">
         <button className="btn btn-warning">Ongoing Orders</button>
       </Link></div>
       }

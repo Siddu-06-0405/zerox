@@ -24,15 +24,20 @@ const App = () => {
       .then((response) => response.text())
       .then((data) => setFileData(data));
   }, []);
+
   const { authUser } = useAuthContext();
   const { authAdmin } = useAdminContext();
+
+  // Convert fileData to boolean based on "true" or "false" string
+  const booleanFileData = fileData ? fileData.trim().toLowerCase() === "true" : null;
+
   if (fileData) {
-    console.log(fileData);
+    console.log(booleanFileData); // Will log 'true' or 'false' based on the file content
   }
 
   return (
     <>
-      {fileData===false ? (
+      {booleanFileData === false ? (
         <Routes>
           <Route
             path="/login"
@@ -44,21 +49,15 @@ const App = () => {
           />
           <Route
             path="/"
-            element={
-              authUser ? <Home messages={fileData} /> : <Navigate to="/login" />
-            }
+            element={authUser ? <Home messages={booleanFileData} /> : <Navigate to="/login" />}
           />
           <Route
             path="/admindashboard"
-            element={
-              authAdmin ? <AdminDashboard /> : <Navigate to="/adminlogin" />
-            }
+            element={authAdmin ? <AdminDashboard /> : <Navigate to="/adminlogin" />}
           />
           <Route
             path="/adminlogin"
-            element={
-              authAdmin ? <Navigate to="/admindashboard" /> : <AdminLogin />
-            }
+            element={authAdmin ? <Navigate to="/admindashboard" /> : <AdminLogin />}
           />
         </Routes>
       ) : (
@@ -74,61 +73,37 @@ const App = () => {
           />
           <Route
             path="/"
-            element={
-              authUser ? <Home messages={fileData} /> : <Navigate to="/login" />
-            }
+            element={authUser ? <Home messages={fileData} /> : <Navigate to="/login" />}
           />
 
           {/* Protected Routes (Only logged-in users can access) */}
           <Route
             path="/options"
-            element={
-              authUser && fileData ? <PrintOptions /> : <Navigate to="/login" />
-            }
+            element={authUser && booleanFileData ? <PrintOptions /> : <Navigate to="/login" />}
           />
           <Route
             path="/settings"
-            element={
-              authUser && fileData ? (
-                <PrintSettings />
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
+            element={authUser && booleanFileData ? <PrintSettings /> : <Navigate to="/login" />}
           />
           <Route
             path="/upload"
-            element={
-              authUser && fileData ? <UploadPdf /> : <Navigate to="/login" />
-            }
+            element={authUser && booleanFileData ? <UploadPdf /> : <Navigate to="/login" />}
           />
           <Route
             path="/department"
-            element={
-              authUser && fileData ? (
-                <SelectDepartment />
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
+            element={authUser && booleanFileData ? <SelectDepartment /> : <Navigate to="/login" />}
           />
           <Route
             path="/cart"
-            element={
-              authUser && fileData ? <YourCart /> : <Navigate to="/login" />
-            }
+            element={authUser && booleanFileData ? <YourCart /> : <Navigate to="/login" />}
           />
           <Route
             path="/admindashboard"
-            element={
-              authAdmin ? <AdminDashboard /> : <Navigate to="/adminlogin" />
-            }
+            element={authAdmin ? <AdminDashboard /> : <Navigate to="/adminlogin" />}
           />
           <Route
             path="/adminlogin"
-            element={
-              authAdmin ? <Navigate to="/admindashboard" /> : <AdminLogin />
-            }
+            element={authAdmin ? <Navigate to="/admindashboard" /> : <AdminLogin />}
           />
         </Routes>
       )}
