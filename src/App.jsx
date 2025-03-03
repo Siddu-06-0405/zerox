@@ -7,7 +7,7 @@ import UploadPdf from "./pages/UploadPdf";
 import SelectDepartment from "./pages/SelectDepartment";
 import YourCart from "./pages/YourCart";
 import AdminDashboard from "./pages/AdminDashboard";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "@/components/ui/sonner"
 import { useAuthContext } from "./context/AuthContext";
 import { useAdminContext } from "./context/AdminLoginContext";
 import Login from "./pages/Login";
@@ -15,12 +15,13 @@ import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
 
+
 const App = () => {
   const [fileData, setFileData] = useState(null);
 
   useEffect(() => {
     // Fetch file data from the backend API (e.g., text file, image, etc.)
-    fetch("http://localhost:5000/files/r.txt")
+    fetch("http://localhost:5001/files/r.txt")
       .then((response) => response.text())
       .then((data) => setFileData(data));
   }, []);
@@ -37,6 +38,7 @@ const App = () => {
 
   return (
     <>
+
       {booleanFileData === false ? (
         <Routes>
           <Route
