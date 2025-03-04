@@ -1,24 +1,5 @@
 import { useOrder } from "../context/OrderContext";
 import { useNavigate } from "react-router-dom";
-import { Plus, Minus } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const PrintSettings = () => {
   const { order, updateOrder } = useOrder();
@@ -26,118 +7,70 @@ const PrintSettings = () => {
 
   const handleNext = () => {
     // Validation: Ensure all required fields are filled before navigation
-    if (
-      !order.copyNumber ||
-      !order.printType ||
-      !order.colorOption ||
-      !order.noOfPagesToPrint
-    ) {
+    if (!order.copyNumber || !order.printType || !order.colorOption || !order.noOfPagesToPrint) {
       alert("Please complete all print settings before proceeding.");
       return;
     }
-    navigate("/cart");
+    navigate("/cart"); // ✅ Navigate only when button is clicked
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-md">
-        <Card>
-          <CardHeader>
-            <CardTitle >
-              Print Settings 
-            </CardTitle>
-            <CardDescription >
-              Configure your print options below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* No. of Copies */}
-            <div>
-              <Label className="mb-2">No. of Copies</Label>
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() =>
-                    updateOrder({
-                      copyNumber: Math.max(1, order.copyNumber - 1),
-                    })
-                  }
-                >
-                  <Minus size={12} />
-                </Button>
-                <span className="text-l font-semibold">
-                  {order.copyNumber}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() =>
-                    updateOrder({ copyNumber: order.copyNumber + 1 })
-                  }
-                >
-                  <Plus size={16} />
-                </Button>
-              </div>
-            </div>
+    <div className="flex flex-col items-center justify-center min-w-96 mx-auto">
+      <div className="w-full p-6 rounded-lg shadow-md bg-gray-400 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0">
+        <h1 className="text-3xl font-semibold text-center text-gray-300">
+          Print Settings<span className="text-blue-500"> Company Name</span>
+        </h1>
 
-            {/* Print Type */}
-            <div>
-              <Label className="mb-2">Print Type</Label>
-              <Select
-                value={order.printType}
-                onValueChange={(value) => updateOrder({ printType: value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Print Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Single side">Single side</SelectItem>
-                  <SelectItem value="Double side">Double side</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <div>
+          <label className="label p-2">
+            <span className="text-base label-text">No. of Copies</span>
+          </label>
+          <div className="flex justify-between items-center">
+            <button className="btn btn-neutral m-4" onClick={() => updateOrder({ copyNumber: Math.max(1, order.copyNumber - 1) })}>-</button>
+            {order.copyNumber}
+            <button className="btn btn-neutral m-4" onClick={() => updateOrder({ copyNumber: order.copyNumber + 1 })}>+</button>
+          </div>
+        </div>
 
-            {/* Color Option */}
-            <div>
-              <Label className="mb-2">Color Option</Label>
-              <Select
-                value={order.colorOption}
-                onValueChange={(value) => updateOrder({ colorOption: value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Color Option" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Black & White">
-                    Black & White
-                  </SelectItem>
-                  <SelectItem value="Color">Color</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <div>
+          <label className="label">
+            <span className="text-base label-text">Print Type</span>
+          </label>
+          <select className="w-full input input-bordered h-10" value={order.printType} onChange={(e) => updateOrder({ printType: e.target.value })}>
+            <option value="">Select Print Type</option> {/* Prevents empty values */}
+            <option>Single side</option>
+            <option>Double side</option>
+          </select>
+        </div>
 
-            {/* Description / Pages to Print */}
-            <div>
-              <Label className="mb-2">
-                Enter your description of printing your uploaded PDFs
-              </Label>
-              <Input
-                type="text"
-                placeholder="E.g., Page 1-5, All pages, Specific page numbers"
-                value={order.noOfPagesToPrint}
-                onChange={(e) =>
-                  updateOrder({ noOfPagesToPrint: e.target.value })
-                }
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button onClick={handleNext} className="w-full">
-              Next
-            </Button>
-          </CardFooter>
-        </Card>
+        <div>
+          <label className="label">
+            <span className="text-base label-text">Color Option</span>
+          </label>
+          <select className="w-full input input-bordered h-10" value={order.colorOption} onChange={(e) => updateOrder({ colorOption: e.target.value })}>
+            <option value="">Select Color Option</option> {/* Prevents empty values */}
+            <option>Black & White</option>
+            <option>Color</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="label">
+            <span className="text-base label-text">Enter your description of printing your uploaded PDFs</span>
+          </label>
+          <input
+            type="text"
+            className="w-full input input-bordered h-10"
+            value={order.noOfPagesToPrint}
+            onChange={(e) => updateOrder({ noOfPagesToPrint: e.target.value })}
+            placeholder="E.g., Page 1-5, All pages, Specific page numbers"
+          />
+        </div>
+
+        {/* ✅ Fixed Navigation Issue */}
+        <button className="btn btn-block btn-sm mt-2" onClick={handleNext}>
+          Next
+        </button>
       </div>
     </div>
   );

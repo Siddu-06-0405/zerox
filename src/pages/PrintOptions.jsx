@@ -1,98 +1,106 @@
-import { useNavigate, Link } from "react-router-dom";
-import { Plus, Minus } from "lucide-react";
-import { useOrder } from "../context/OrderContext";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { ShoppingCart, User, Plus, Minus } from "lucide-react";
+import { useOrder } from "../context/OrderContext"; // ✅ Use unified order context
+import { Link } from "react-router-dom";
 
 export default function PrintOptions() {
-  const { order, updateOrder } = useOrder();
+  const { order, updateOrder } = useOrder(); // ✅ Get order & updateOrder from global context
   const navigate = useNavigate();
 
   const handleFileUpload = () => {
     navigate("/upload");
   };
 
-  return (  <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload</CardTitle>
-          <CardDescription>
-            upload your pdf before you can proceed to settings
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-6">
-            {/* Print PDF Section */}
-            <div className="flex items-center justify-between">
-              <span className="text-lg font-medium">Print PDF</span>
-              <Button variant="outline" onClick={handleFileUpload}>
-                Upload PDF
-              </Button>
-            </div>
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      {/* Header Section */}
+      <div className="flex justify-between items-center mb-4">
+        <User size={24} />
+        <h1 className="text-xl font-semibold">Zerox</h1>
+        <ShoppingCart size={24} />
+      </div>
 
-            {/* Record Papers Section */}
-            {/* <div className="flex items-center justify-between">
-              <span className="text-lg font-medium">Record Papers</span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  className="p-2 rounded-full"
-                  onClick={() =>
-                    updateOrder({
-                      recordPapers: Math.max(0, order.recordPapers - 1),
-                    })
-                  }
-                >
-                  <Minus size={16} />
-                </Button>
-                <span className="text-lg font-semibold">
-                  {order.recordPapers}
-                </span>
-                <Button
-                  variant="ghost"
-                  className="p-2 rounded-full"
-                  onClick={() =>
-                    updateOrder({ recordPapers: order.recordPapers + 1 })
-                  }
-                >
-                  <Plus size={16} />
-                </Button>
-            </div>  
-              </div> */}
-
-            {/* Front Papers for Records Section */}
-            {/* <div className="flex items-center justify-between">
-              <span className="text-lg font-medium">
-                Front Papers for Records
-              </span>
-              <Button
-                variant={order.frontPapers ? "default" : "outline"}
-                onClick={() => {
-                  navigate("/department");
-                  updateOrder({ frontPapers: !order.frontPapers });
-                }}
-              >
-                {order.frontPapers ? "Selected" : "Select"}
-              </Button>
-            </div> */}
+      {/* Order Options Section */}
+      <div className="card bg-base-100 shadow-xl p-4">
+        <div className="card-body flex flex-col gap-4">
+          {/* Print PDF */}
+          <div className="flex items-center gap-4">
+            <span className="text-lg">Print PDF</span>
+            <button
+              onClick={handleFileUpload}
+            className="btn btn-outline">
+              Add PDF
+            </button>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-between">
 
-          <Link to="/settings">
-            <Button variant="outline">Next</Button>
-          </Link>
-        </CardFooter>
-      </Card>
+          {/* Record Papers */}
+          <div className="flex items-center gap-4">
+            <span className="text-lg">Record Papers</span>
+            <button
+              className="btn btn-circle btn-outline"
+              onClick={() =>
+                updateOrder({
+                  recordPapers: Math.max(0, order.recordPapers - 1),
+                })
+              }
+            >
+              <Minus size={16} />
+            </button>
+            <span className="text-lg font-semibold">
+              {order.recordPapers}
+            </span>
+            <button
+              className="btn btn-circle btn-outline"
+              onClick={() =>
+                updateOrder({
+                  recordPapers: order.recordPapers + 1,
+                })
+              }
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+
+          {/* Front Papers for Records */}
+          <div className="flex items-center gap-4">
+            <span className="text-lg">Front Papers for Records</span>
+            <button
+              className={`btn ${
+                order.frontPapers ? "btn-success" : "btn-primary"
+              }`}
+              onClick={() =>
+                {navigate("/department")
+                updateOrder({ frontPapers: !order.frontPapers })}
+              }
+            >
+              {order.frontPapers ? "Selected" : "Select"}
+            </button>
+          </div>
+
+          {/* Graphs */}
+          {/* <div className="flex items-center gap-4">
+            <span className="text-lg">Graphs</span>
+            <button
+              className={`btn ${
+                order.graphs ? "btn-success" : "btn-primary"
+              }`}
+              onClick={() =>
+                updateOrder({ graphs: !order.graphs })
+              }
+            >
+              {order.graphs ? "Selected" : "Select"}
+            </button>
+          </div> */}
+        </div>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="flex justify-between mt-4">
+        <button className="btn btn-success">Add Order</button>
+        <Link to="/settings">
+          <button className="btn btn-warning">Next</button>
+        </Link>
+      </div>
     </div>
-  </div>
   );
 }

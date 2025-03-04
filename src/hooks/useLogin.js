@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { toast } from "sonner"; // Import Sonner toast
+import toast from "react-hot-toast";
 import { useAuthContext } from "../context/AuthContext";
 
 const useLogin = () => {
@@ -7,11 +7,11 @@ const useLogin = () => {
 	const { setAuthUser } = useAuthContext();
 
 	const login = async (username, password) => {
-		if (!handleInputErrors(username, password)) return;
-
+		const success = handleInputErrors(username, password);
+		if (!success) return;
 		setLoading(true);
 		try {
-			const res = await fetch("http://localhost:5001/api/auth/login", {
+			const res = await fetch("http://localhost:5000/api/auth/login", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ username, password }),
@@ -24,9 +24,8 @@ const useLogin = () => {
 
 			localStorage.setItem("print-user", JSON.stringify(data));
 			setAuthUser(data);
-			toast.success("Login successful! 🎉"); // Sonner toast for success
 		} catch (error) {
-			toast.error(error.message); // Sonner toast for errors
+			toast.error(error.message);
 		} finally {
 			setLoading(false);
 		}
@@ -34,13 +33,13 @@ const useLogin = () => {
 
 	return { loading, login };
 };
-
 export default useLogin;
 
 function handleInputErrors(username, password) {
 	if (!username || !password) {
-		toast.warning("Please fill in all fields ⚠️"); // Sonner toast for validation
+		toast.error("Please fill in all fields");
 		return false;
 	}
+
 	return true;
 }

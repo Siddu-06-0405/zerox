@@ -16,7 +16,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import connectToMongoDB from "./db/connectToMongoDB.js";
 
 dotenv.config();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const isDev = process.env.NODE_ENV !== "production";
@@ -87,13 +87,8 @@ io.on("connection", (socket) => {
   });
 });
 
-
-
-
 // ✅ Start Server
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, () => {
   connectToMongoDB();
   console.log(`Server running on port ${PORT} in ${isDev ? "development" : "production"} mode`);
 });
-
-

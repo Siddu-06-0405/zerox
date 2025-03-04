@@ -1,82 +1,82 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import toast from "react-hot-toast";
 
-export default function PrintOptions() {
+const UploadPdf = () => {
   const { order, updateOrder } = useOrder();
   const [selectedFiles, setSelectedFiles] = useState([]);
   const navigate = useNavigate();
 
+  // Handle file selection
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files);
+    const files = Array.from(event.target.files); // Convert FileList to Array
     if (files.length > 0) {
-      setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
+      setSelectedFiles((prevFiles) => [...prevFiles, ...files]); // Append new files
     }
   };
 
-  const handleNext = () => {
+  // Handle file submission
+  const handleSubmit = () => {
     if (selectedFiles.length === 0) {
-      toast.error("Please select at least one file before proceeding.");
+      alert("Please select at least one file before submitting.");
       return;
     }
-    updateOrder({
-      files: [...order.files, ...selectedFiles],
-      pdfCount: order.pdfCount + selectedFiles.length,
+
+    // Update order context with selected files & count
+    updateOrder({ 
+      files: [...order.files, ...selectedFiles], 
+      pdfCount: order.pdfCount + selectedFiles.length 
     });
-    navigate("/settings");
+
+    // Ensure state updates before navigating
+    setTimeout(() => {
+      navigate("/options");
+    }, 100);
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload</CardTitle>
-            <CardDescription>
-              Upload your PDF before you can proceed to settings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col items-center">
-                <Input
-                  id="picture"
-                  type="file"
-                  accept=".pdf"
-                  multiple
-                  onChange={handleFileChange}
-                  className="cursor-pointer"
-                />
-              </div>
-              <div>
-                {selectedFiles.length > 0 ? (
-                  <ul className="text-sm">
-                    {selectedFiles.map((file, index) => (
-                      <li key={index}>{file.name}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <Badge variant="destructive">No files uploaded</Badge>
-                )}
-              </div>
-              <Button onClick={handleNext} disabled={selectedFiles.length === 0}>
-                Next
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="bg-cyan-500 p-6 rounded-2xl shadow-lg w-80 text-center">
+        <h1 className="text-lg font-semibold">Upload your PDFs</h1>
+        <div className="mt-4 flex items-center space-x-2">
+          <input 
+            type="file" 
+            accept=".pdf" 
+            multiple // ✅ Allow multiple file selection
+            onChange={handleFileChange} 
+            className="hidden" 
+            id="file-upload"
+          />
+          <label 
+            htmlFor="file-upload" 
+            className="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer"
+          >
+            Choose Files
+          </label>
+        </div>
+        
+        {/* Display selected file names */}
+        <div className="mt-2">
+          {selectedFiles.length > 0 ? (
+            <ul className="text-sm text-gray-800">
+              {selectedFiles.map((file, index) => (
+                <li key={index}>{file.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-red-500">No files uploaded</p>
+          )}
+        </div>
+
+        <button 
+          onClick={handleSubmit} 
+          className="btn btn-soft btn-secondary mt-4"
+        >
+          Submit Files
+        </button>
       </div>
     </div>
   );
-}
+};
+
+export default UploadPdf;
