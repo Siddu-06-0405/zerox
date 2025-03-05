@@ -1,5 +1,5 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
+import {toast} from "sonner";
 import { useAdminContext } from "../context/AdminLoginContext";
 
 const useAdminLogin = () => {

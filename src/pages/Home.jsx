@@ -60,14 +60,23 @@ const Home = (props) => {
             {servicesAvailable ? (
               <div  className="space-x-2   flex">
               <p className="text-sm text-gray-500">you can see all the orders which we are currently severing live here </p>
-              <Button variant="outline" className="">
-              Ongoing Orders
-            </Button>
+              <Link to="/ongoing">
+                <Button variant="outline" className="">
+                Ongoing Orders
+              </Button>
+              </Link>
 
               </div>
               
             ) : (
+              <div  className="space-x-2   flex">
               <p>Check back soon for updates.</p>
+              <Link to="/ongoing">
+                <Button variant="outline" className="">
+                Ongoing Orders
+              </Button>
+              </Link>
+              </div>
             )}
           </CardFooter>
         </Card>

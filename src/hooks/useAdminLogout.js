@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useAdminContext } from "../context/AdminLoginContext";
-import toast from "react-hot-toast";
+import {toast} from "sonner";
 
 const useAdminLogout = () => {
   const [loading,setLoading] = useState(false);

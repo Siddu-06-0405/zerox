@@ -2,20 +2,20 @@ import React, { useEffect, useState } from "react";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminLogoutButton from "./AdminLogoutButton";
 import useAdmin from "../hooks/useAdmin";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState(null); // Store the selected orderId
-  const [selectedStatus, setSelectedStatus] = useState(""); // Store the selected order status
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   const { admin } = useAdmin();
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem("Empty")); // Get user info
+        const user = JSON.parse(localStorage.getItem("Empty"));
 
         if (!user || !user.token) {
           toast.error("You need to log in first!");
@@ -43,16 +43,15 @@ const AdminDashboard = () => {
     fetchOrders();
   }, []);
 
-  // Handle the confirmation logic for marking an order as complete
   const markOrderAsDone = (orderId, status) => {
-    setSelectedStatus(status); // Set the correct status (Pending or Completed)
-    setSelectedOrderId(orderId); // Store the selected orderId
-    setIsModalOpen(true); // Open the modal
+    setSelectedStatus(status);
+    setSelectedOrderId(orderId);
+    setIsModalOpen(true);
   };
 
   const AcceptOrders = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("Empty")); // Get user info
+      const user = JSON.parse(localStorage.getItem("Empty"));
 
       if (!user || !user.token) {
         toast.error("You need to log in first!");
@@ -69,19 +68,19 @@ const AdminDashboard = () => {
 
       const data = await response.json();
       if (response.ok) {
-        toast.success("services started");
+        toast.success("Services started");
       } else {
-        toast.error(data.message || "some error occured in admin controller");
+        toast.error(data.message || "Some error occurred in admin controller");
       }
     } catch (error) {
-      console.error("service error:", error);
+      console.error("Service error:", error);
       toast.error("Network error. Try again later.");
     }
   };
 
   const RejectOrders = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("Empty")); // Get user info
+      const user = JSON.parse(localStorage.getItem("Empty"));
 
       if (!user || !user.token) {
         toast.error("You need to log in first!");
@@ -90,36 +89,33 @@ const AdminDashboard = () => {
       const response = await fetch(`http://localhost:5001/api/admin/stop`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       const data = await response.json();
       if (response.ok) {
-        toast.success("services stopped");
+        toast.success("Services stopped");
       } else {
-        toast.error(data.message || "some error occured in admin controller");
+        toast.error(data.message || "Some error occurred in admin controller");
       }
     } catch (error) {
-      console.error("service error:", error);
+      console.error("Service error:", error);
       toast.error("Network error. Try again later.");
     }
   };
 
-  // Function to handle confirmation (OK)
   const handleConfirm = async () => {
     try {
-      await admin(selectedOrderId, selectedStatus); // Call the admin hook to update status
-      setIsModalOpen(false); // Close modal after confirming
+      await admin(selectedOrderId, selectedStatus);
+      setIsModalOpen(false);
     } catch (error) {
-      // If something goes wrong, you can handle it here (e.g., show a toast error)
       console.error(error.message);
     }
   };
 
-  // Function to handle cancellation (Cancel)
   const handleCancel = () => {
-    setIsModalOpen(false); // Close modal if cancelled
+    setIsModalOpen(false);
   };
 
   return (
@@ -146,15 +142,15 @@ const AdminDashboard = () => {
           <thead>
             <tr className="bg-gray-200">
               <th className="border p-2">User</th>
-              <th className="border p-2">Files</th>
-              <th className="border p-2">File Links</th>
-              <th className="border p-2">Number of Copies</th>
-              <th className="border p-2">Printing Type</th>
-              <th className="border p-2">Color</th>
+              <th className="border p-2">File Name</th>
+              <th className="border p-2">File Path</th>
+              <th className="border p-2">Copies</th>
+              <th className="border p-2">Print Type</th>
+              <th className="border p-2">Color Option</th>
+              <th className="border p-2">Total Pages</th>
               <th className="border p-2">Status</th>
-              <th className="border p-2">Record Papers</th>
-              <th className="border p-2">Front Papers</th>
-              <th className="border p-2">Action</th>
+              <th className="border p-2">Departments</th>
+              <th className="border p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -166,30 +162,23 @@ const AdminDashboard = () => {
                 }
               >
                 <td className="border p-2">{order.user.username}</td>
-                <td className="border p-2">{order.files.length}</td>
+                <td className="border p-2">{order.fileName}</td>
                 <td className="border p-2">
-                  {order.files.map((file, index) => (
-                    <a
-                      key={index}
-                      href={`http://localhost:5001/${file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <button className="btn m-2">File {index + 1}</button>
-                    </a>
-                  ))}
+                  <a
+                    href={`http://localhost:5001/${order.filePath}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Download
+                  </a>
                 </td>
                 <td className="border p-2">{order.copyNumber}</td>
                 <td className="border p-2">{order.printType}</td>
                 <td className="border p-2">{order.colorOption}</td>
+                <td className="border p-2">{order.totalNoOfPages}</td>
                 <td className="border p-2">{order.status}</td>
-                <td className="border p-2">{order.recordPapers}</td>
                 <td className="border p-2">
-                  {Object.entries(order.departments).map(([key, value]) => (
-                    <div key={key}>
-                      {key}: {value}
-                    </div>
-                  ))}
+                  {JSON.stringify(order.departments)}
                 </td>
                 <td className="border p-2">
                   {order.status === "Completed" ? (
@@ -214,10 +203,9 @@ const AdminDashboard = () => {
         </table>
       </div>
 
-      {/* Render the Confirm Modal */}
       <ConfirmModal
         isOpen={isModalOpen}
-        message={`Are you sure you want to mark this order as ${selectedStatus}?`}
+        message={`Mark this order as ${selectedStatus}?`}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />

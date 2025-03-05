@@ -11,29 +11,32 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function PrintOptions() {
   const { order, updateOrder } = useOrder();
-  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate();
 
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files);
-    if (files.length > 0) {
-      setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
     }
   };
 
   const handleNext = () => {
-    if (selectedFiles.length === 0) {
+    if (!selectedFile) {
       toast.error("Please select at least one file before proceeding.");
       return;
     }
+
     updateOrder({
-      files: [...order.files, ...selectedFiles],
-      pdfCount: order.pdfCount + selectedFiles.length,
+      ...order,
+      file: selectedFile,
+      filename: { name: selectedFile.name },
     });
+
     navigate("/settings");
   };
 
@@ -51,7 +54,6 @@ export default function PrintOptions() {
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center">
                 <Input
-                  id="picture"
                   type="file"
                   accept=".pdf"
                   onChange={handleFileChange}
@@ -59,17 +61,13 @@ export default function PrintOptions() {
                 />
               </div>
               <div>
-                {selectedFiles.length > 0 ? (
-                  <ul className="text-sm">
-                    {selectedFiles.map((file, index) => (
-                      <li key={index}>{file.name}</li>
-                    ))}
-                  </ul>
+                {selectedFile ? (
+                  <Badge className="bg-green-500 text-white">uploaded</Badge>
                 ) : (
-                  <Badge variant="destructive">No files uploaded</Badge>
+                  <Badge variant="destructive">No file uploaded</Badge>
                 )}
               </div>
-              <Button onClick={handleNext} disabled={selectedFiles.length === 0}>
+              <Button onClick={handleNext} disabled={!selectedFile}>
                 Next
               </Button>
             </div>

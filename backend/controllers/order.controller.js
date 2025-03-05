@@ -7,7 +7,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Storage setup for saving files to VPS
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "../uploads");
@@ -21,12 +20,11 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage }).array("files", 5); // Accepts up to 5 files
+const upload = multer({ storage }).single("file");
 
-// ✅ Create Order (Handles JSON Parsing & File Storage)
 export const createOrder = async (req, res) => {
   try {
-    console.log("Uploaded files:", req.files);
+    console.log("Uploaded file:", req.file);
     console.log("Request body:", req.body);
     console.log("User making request:", req.user);
 
@@ -34,31 +32,32 @@ export const createOrder = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized - User not found" });
     }
 
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: "No files uploaded" });
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
     }
 
     if (!req.body.order) {
       return res.status(400).json({ message: "Order data is missing" });
     }
 
-    // ✅ Fix: Convert `req.body.order` from JSON string to object
     const orderData = JSON.parse(req.body.order);
     console.log(orderData);
 
-    // ✅ Ensure all required fields are present
-    if (!orderData.totalAmount || !orderData.pdfCount || !orderData.noOfPagesToPrint ||
+    if (!orderData.totalAmount || !orderData.totalNoOfPages ||
         !orderData.colorOption || !orderData.printType || !orderData.copyNumber) {
       return res.status(400).json({ message: "Missing required fields in order data" });
     }
 
+    const filePath = req.file.path;
+    const fileName = req.file.originalname;
+
     const newOrder = new Order({
       user: req.user._id,
-      files: req.files.map((file) => file.path), // ✅ Store only file paths as strings
+      filePath,
+      fileName,
       ...orderData,
     });
     
-
     const savedOrder = await newOrder.save();
     console.log("Order saved:", savedOrder);
 
@@ -69,82 +68,15 @@ export const createOrder = async (req, res) => {
   }
 };
 
-export const placeOrder = (req, res) => {
-  upload(req, res, async (err) => {
-    if (err) {
-      return res.status(500).json({ error: "File upload failed" });
-    }
-
-    try {
-      console.log("🔹 Raw request body:", req.body);
-      console.log("🔹 Raw order field:", req.body.order);
-
-      if (!req.user) {
-        console.error("❌ Unauthorized - User not found");
-        return res.status(401).json({ message: "Unauthorized - User not found" });
-      }
-
-      if (!req.body.order) {
-        console.error("❌ Order data is missing");
-        return res.status(400).json({ message: "Order data is missing" });
-      }
-
-      // ✅ Fix: Parse `order` correctly
-      let orderData;
-      if (typeof req.body.order === "string") {
-        try {
-          orderData = JSON.parse(req.body.order);
-        } catch (error) {
-          console.error("❌ JSON Parse Error:", error);
-          return res.status(400).json({ message: "Invalid JSON format for order" });
-        }
-      } else {
-        orderData = req.body.order;
-      }
-
-      console.log("✅ Parsed Order Data:", orderData);
-
-      // ✅ Convert `files` array to just file paths (strings)
-      const files = req.files ? req.files.map((file) => file.path) : [];
-
-
-      // ✅ Convert `noOfPagesToPrint` to a valid number (or keep as string if range)
-      if (!isNaN(orderData.noOfPagesToPrint)) {
-        orderData.noOfPagesToPrint = Number(orderData.noOfPagesToPrint);
-      }
-
-      console.log("✅ Final Order Object:", { user: req.user._id, files, ...orderData });
-
-      const order = new Order({
-        user: req.user._id,
-        files, // Now correctly formatted
-        ...orderData,
-      });
-
-      await order.save();
-      console.log("✅ Order saved successfully!");
-      res.status(201).json({ message: "Order placed successfully", order });
-    } catch (error) {
-      console.error("❌ Error in placeOrder:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  });
-};
-
-
-
-// ✅ Get all Orders (For Admin)
 export const getOrders = async (req, res) => {
   try {
     const orders = await Order.find().populate("user", "username");
     res.json(orders);
   } catch (error) {
-    console.error("Error in getOrders:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✅ Update Order Status (For Admin)
 export const updateOrderStatus = async (req, res) => {
   const { orderId } = req.params;
   const { status } = req.body;
@@ -155,9 +87,24 @@ export const updateOrderStatus = async (req, res) => {
 
     order.status = status;
     await order.save();
+
     res.json({ message: "Order updated", order });
   } catch (error) {
-    console.error("Error in updateOrderStatus:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getUserOngoingOrders = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const orders = await Order.find({ user: userId, status: { $ne: "Completed" } })
+      .select("createdAt estimatedTime status")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching ongoing orders:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

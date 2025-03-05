@@ -25,12 +25,13 @@ const PrintSettings = () => {
   const navigate = useNavigate();
 
   const handleNext = () => {
-    // Validation: Ensure all required fields are filled before navigation
     if (
       !order.copyNumber ||
       !order.printType ||
       !order.colorOption ||
-      !order.noOfPagesToPrint
+      !order.startPage ||
+      !order.endPage ||
+      !order.totalNoOfPages
     ) {
       alert("Please complete all print settings before proceeding.");
       return;
@@ -43,12 +44,8 @@ const PrintSettings = () => {
       <div className="w-full max-w-md">
         <Card>
           <CardHeader>
-            <CardTitle >
-              Print Settings 
-            </CardTitle>
-            <CardDescription >
-              Configure your print options below.
-            </CardDescription>
+            <CardTitle>{order.file.name}</CardTitle>
+            <CardDescription>Configure your print options below.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* No. of Copies */}
@@ -66,9 +63,7 @@ const PrintSettings = () => {
                 >
                   <Minus size={12} />
                 </Button>
-                <span className="text-l font-semibold">
-                  {order.copyNumber}
-                </span>
+                <span className="text-l font-semibold">{order.copyNumber}</span>
                 <Button
                   variant="outline"
                   size="icon"
@@ -109,27 +104,43 @@ const PrintSettings = () => {
                   <SelectValue placeholder="Select Color Option" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Black & White">
-                    Black & White
-                  </SelectItem>
+                  <SelectItem value="Black & White">Black & White</SelectItem>
                   <SelectItem value="Color">Color</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Description / Pages to Print */}
+            {/* Start Page */}
             <div>
-              <Label className="mb-2">
-                Enter your description of printing your uploaded PDFs
-              </Label>
+              <Label className="mb-2">Start Page</Label>
               <Input
-                type="text"
-                placeholder="E.g., Page 1-5, All pages, Specific page numbers"
-                value={order.noOfPagesToPrint}
-                onChange={(e) =>
-                  updateOrder({ noOfPagesToPrint: e.target.value })
-                }
+                type="number"
+                min="1"
+                value={order.startPage || ""}
+                onChange={(e) => updateOrder({ startPage: parseInt(e.target.value) || "" })}
               />
+            </div>
+
+            {/* End Page */}
+            <div>
+              <Label className="mb-2">End Page</Label>
+              <Input
+                type="number"
+                min={order.startPage || 1}
+                value={order.endPage || ""}
+                onChange={(e) => {
+                  const endPage = parseInt(e.target.value) || "";
+                  updateOrder({
+                    endPage,
+                    totalNoOfPages: order.startPage ? endPage - order.startPage + 1 : "",
+                  });
+                }}
+              />
+            </div>
+
+            {/* Total Pages */}
+            <div>
+              <Label className="mb-2">Total Pages : {order.totalNoOfPages || ""}</Label>
             </div>
           </CardContent>
           <CardFooter>

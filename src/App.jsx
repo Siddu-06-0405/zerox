@@ -7,6 +7,7 @@ import UploadPdf from "./pages/UploadPdf";
 import SelectDepartment from "./pages/SelectDepartment";
 import YourCart from "./pages/YourCart";
 import AdminDashboard from "./pages/AdminDashboard";
+import Ongoing from "./pages/Ongoing";
 import { Toaster } from "@/components/ui/sonner"
 import { useAuthContext } from "./context/AuthContext";
 import { useAdminContext } from "./context/AdminLoginContext";
@@ -54,6 +55,10 @@ const App = () => {
             element={authUser ? <Home messages={booleanFileData} /> : <Navigate to="/login" />}
           />
           <Route
+            path="/ongoing"
+            element={authUser && booleanFileData ? <Ongoing /> : <Navigate to="/login" />}
+          />
+          <Route
             path="/admindashboard"
             element={authAdmin ? <AdminDashboard /> : <Navigate to="/adminlogin" />}
           />
@@ -98,6 +103,10 @@ const App = () => {
           <Route
             path="/cart"
             element={authUser && booleanFileData ? <YourCart /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/ongoing"
+            element={authUser && booleanFileData ? <Ongoing /> : <Navigate to="/login" />}
           />
           <Route
             path="/admindashboard"

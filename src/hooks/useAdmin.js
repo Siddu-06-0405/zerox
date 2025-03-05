@@ -1,5 +1,5 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const useAdmin = () => {
   const admin = async (orderId, status) => {
