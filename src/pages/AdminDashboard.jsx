@@ -21,7 +21,7 @@ const AdminDashboard = () => {
           toast.error("You need to log in first!");
           return;
         }
-        const response = await fetch("http://localhost:5000/api/admin/orders", {
+        const response = await fetch("http://localhost:5001/api/admin/orders", {
           method: "GET",
           credentials: "include",
           headers: {
@@ -58,7 +58,7 @@ const AdminDashboard = () => {
         toast.error("You need to log in first!");
         return;
       }
-      const response = await fetch(`http://localhost:5000/api/admin/start`, {
+      const response = await fetch(`http://localhost:5001/api/admin/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
         toast.error("You need to log in first!");
         return;
       }
-      const response = await fetch(`http://localhost:5000/api/admin/stop`, {
+      const response = await fetch(`http://localhost:5001/api/admin/stop`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -171,7 +171,7 @@ const AdminDashboard = () => {
                   {order.files.map((file, index) => (
                     <a
                       key={index}
-                      href={`http://localhost:5000/${file}`}
+                      href={`http://localhost:5001/${file}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

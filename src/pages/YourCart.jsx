@@ -3,7 +3,7 @@ import { ShoppingCart, User } from "lucide-react";
 import { useOrder } from "../context/OrderContext";
 import toast from "react-hot-toast";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "http://localhost:5001";
 
 const YourCart = () => {
   const { order } = useOrder();

@@ -12,7 +12,7 @@ const useAdmin = () => {
       }
 
       // Make sure to avoid repeating the `headers` definition
-      const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}`, {
+      const res = await fetch(`http://localhost:5001/api/admin/orders/${orderId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -20,7 +20,7 @@ const App = () => {
 
   useEffect(() => {
     // Fetch file data from the backend API (e.g., text file, image, etc.)
-    fetch("http://localhost:5000/files/r.txt")
+    fetch("http://localhost:5001/files/r.txt")
       .then((response) => response.text())
       .then((data) => setFileData(data));
   }, []);
