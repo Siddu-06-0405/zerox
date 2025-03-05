@@ -54,7 +54,6 @@ export default function PrintOptions() {
                   id="picture"
                   type="file"
                   accept=".pdf"
-                  multiple
                   onChange={handleFileChange}
                   className="cursor-pointer"
                 />
