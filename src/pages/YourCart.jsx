@@ -1,13 +1,32 @@
 import React from "react";
-import { ShoppingCart, User } from "lucide-react";
 import { useOrder } from "../context/OrderContext";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const API_URL = "http://localhost:5001";
 
 const YourCart = () => {
   const { order } = useOrder();
-  const { departments } = order;
+  const navigate = useNavigate();
 
   if (!order) return <p>Loading order details...</p>;
 
@@ -19,23 +38,22 @@ const YourCart = () => {
   // Send Order to Backend
   const handleSubmitOrder = async () => {
     const user = JSON.parse(localStorage.getItem("print-user")); // Get user info
-  
+
     if (!user || !user.token) {
       toast.error("You need to log in first!");
       return;
     }
-  
+
     if (!order.files || order.files.length === 0) {
       toast.error("No files selected. Please upload your PDFs first.");
       return;
     }
-  
+
     const formData = new FormData();
-    
     // Append files to formData
     order.files.forEach((file) => formData.append("files", file));
-  
-    // ✅ Send order as a properly formatted JSON string
+
+    // Prepare order data as a JSON string
     const orderData = {
       copyNumber: order.copyNumber,
       pdfCount: order.pdfCount,
@@ -46,13 +64,12 @@ const YourCart = () => {
       departments: order.departments,
       totalAmount: totalAmount.toFixed(2),
     };
-  
-    console.log("Sending order data:", orderData); // Debugging
+
+    console.log("Sending order data:", orderData);
     formData.append("order", JSON.stringify(orderData));
-  
+
     try {
-      console.log("Sending request with token:", user.token); // Debugging
-  
+      console.log("Sending request with token:", user.token);
       const response = await fetch(`${API_URL}/api/orders/place-order`, {
         method: "POST",
         credentials: "include",
@@ -61,7 +78,7 @@ const YourCart = () => {
         },
         body: formData,
       });
-  
+
       const data = await response.json();
       if (response.ok) {
         toast.success("Order placed successfully!");
@@ -73,48 +90,83 @@ const YourCart = () => {
       toast.error("Network error. Try again later.");
     }
   };
-  
 
   return (
-    <div className="flex flex-col items-center p-4">
-      {/* Navigation Bar */}
-      <div className="flex justify-between items-center w-full max-w-md mb-4">
-        <User className="w-6 h-6 cursor-pointer" />
-        <h1 className="text-xl font-bold">ZEROX</h1>
-        <ShoppingCart className="w-6 h-6 cursor-pointer" />
-      </div>
+    <div className="flex items-center justify-center min-h-screen px-4">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle className>Your Cart</CardTitle>
+            <CardDescription >
+              Please review your order details below before proceeding to payment.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableCaption>Your Order Summary</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Detail</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>PDFs</TableCell>
+                  <TableCell>{order.pdfCount}</TableCell>
+                </TableRow>
+                {/* <TableRow>
+                  <TableCell>Record Papers</TableCell>
+                  <TableCell>{order.recordPapers}</TableCell>
+                </TableRow> */}
+                <TableRow>
+                  <TableCell>No. of Pages to Print</TableCell>
+                  <TableCell>{order.noOfPagesToPrint}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Print Type</TableCell>
+                  <TableCell>{order.printType}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Color Option</TableCell>
+                  <TableCell>{order.colorOption}</TableCell>
+                </TableRow>
+                {/* <TableRow>
+                  <TableCell>Selected Departments</TableCell>
+                  <TableCell>
+                    {Object.entries(order.departments)
+                      .filter(([dept, count]) => count > 0)
+                      .map(([dept, count]) => `${dept} (${count})`)
+                      .join(", ")}
+                  </TableCell>
+                </TableRow> */}
+                <TableRow>
+                  <TableCell>Offline Charges</TableCell>
+                  <TableCell>₹{offlineCharge}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Service Charge</TableCell>
+                  <TableCell>₹{serviceCharge.toFixed(2)}</TableCell>
+                </TableRow>
+              </TableBody>
+              <TableFooter>
+                <TableRow>
 
-      {/* Cart Details */}
-      <div className="card w-full max-w-md bg-base-100 shadow-xl p-4">
-        <div className="card-body">
-          <h2 className="card-title text-lg font-bold">Your Cart</h2>
-          <div className="mb-2">PDFs: {order.pdfCount}</div>
-          <div className="mb-2">Record Papers: {order.recordPapers}</div>
-          <div className="mb-2">Number of Pages to print: {order.noOfPagesToPrint}</div>
-          <div className="mb-2">Print Type: {order.printType}</div>
-          <div className="mb-2">Color Options: {order.colorOption}</div>
-          <div className="card-body flex flex-col gap-4">
-            <h2 className="mb-2">Selected Departments Front Papers:</h2>
-            {Object.entries(departments).map(([dept, count]) =>
-              count > 0 ? (
-                <div key={dept} className="flex justify-between">
-                  <span>{dept}</span>
-                  <span className="font-semibold">{count}</span>
-                </div>
-              ) : null
-            )}
-          </div>
-
-          {/* Pricing Section */}
-          <div className="mb-2">Offline Charges: ₹{offlineCharge}</div>
-          <div className="mb-2">Service Charge: ₹{serviceCharge.toFixed(2)}</div>
-          <div className="font-bold text-lg mb-4">Total: ₹{totalAmount.toFixed(2)}</div>
-
-          {/* Pay Button */}
-          <button className="btn btn-primary w-full" onClick={handleSubmitOrder}>
-            Proceed to Pay
-          </button>
-        </div>
+                  <TableCell >Total Amount</TableCell>
+                  <TableCell >₹{totalAmount.toFixed(2)}</TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </CardContent>
+          <CardFooter className="flex flex-col items-center space-y-6">
+            <Button onClick={handleSubmitOrder} className="w-full">
+              Proceed to Pay
+            </Button>
+            <p className="text-xs text-gray-500">
+              Double-check your order details. If you need to modify any settings, please go back and update them.
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
