@@ -33,7 +33,7 @@ const YourCart = () => {
     toast.error("No file selected.");
     return;
   }
-  
+
   // Pricing Calculation
   const pricePerPage = order.colorOption === "Black & White" ? 1 : 3;
   const offlineCharge = pricePerPage * order.totalNoOfPages;
@@ -59,13 +59,17 @@ const YourCart = () => {
       copyNumber: order.copyNumber,
       startPage: order.startPage,
       endPage: order.endPage,
+      maxPage: order.maxPage,
       totalNoOfPages: order.totalNoOfPages,
+      pageSelection: order.pageSelection,
       recordPapers: order.recordPapers,
       printType: order.printType,
       colorOption: order.colorOption,
+      customPages: order.customPages,
       departments: order.departments,
       totalAmount: totalAmount.toFixed(2),
-      estimatedTime: order.estimatedTime
+      estimatedTime: order.estimatedTime,
+      requiredBefore: order.requiredBefore,
     };
 
     formData.append("order", JSON.stringify(orderData));
@@ -111,7 +115,9 @@ const YourCart = () => {
         <Card>
           <CardHeader>
             <CardTitle>Your Cart</CardTitle>
-            <CardDescription>Review your order details before proceeding.</CardDescription>
+            <CardDescription>
+              Review your order details before proceeding.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -123,7 +129,7 @@ const YourCart = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-              <TableRow>
+                <TableRow>
                   <TableCell>file name</TableCell>
                   <TableCell>{order.file.name}</TableCell>
                 </TableRow>
@@ -132,13 +138,29 @@ const YourCart = () => {
                   <TableCell>{order.copyNumber}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>Start Page</TableCell>
-                  <TableCell>{order.startPage || "All Pages"}</TableCell>
+                  <TableCell>Page Selection</TableCell>
+                  <TableCell>{order.pageSelection}</TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell>End Page</TableCell>
-                  <TableCell>{order.endPage || "All Pages"}</TableCell>
-                </TableRow>
+                {order.pageSelection === "range" && (
+                  <>
+                  <TableRow>
+                    <TableCell>Start Page</TableCell>
+                    <TableCell>{order.startPage}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>End Page</TableCell>
+                    <TableCell>{order.endPage}</TableCell>
+                  </TableRow>
+                  </>
+                )}
+                {order.pageSelection === "custom" && (
+                  <>
+                  <TableRow>
+                    <TableCell>Custom Pages</TableCell>
+                    <TableCell>{order.customPages}</TableCell>
+                  </TableRow>
+                  </>
+                )}
                 <TableRow>
                   <TableCell>Total No. of Pages</TableCell>
                   <TableCell>{order.totalNoOfPages}</TableCell>
@@ -157,7 +179,9 @@ const YourCart = () => {
                 </TableRow>
                 <TableRow>
                   <TableCell>Departments</TableCell>
-                  <TableCell>{Object.keys(order.departments).join(", ") || "None"}</TableCell>
+                  <TableCell>
+                    {Object.keys(order.departments).join(", ") || "None"}
+                  </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell>Offline Charge</TableCell>
@@ -171,7 +195,9 @@ const YourCart = () => {
               <TableFooter>
                 <TableRow>
                   <TableCell className="font-bold">Total Amount</TableCell>
-                  <TableCell className="font-bold">₹{totalAmount.toFixed(2)}</TableCell>
+                  <TableCell className="font-bold">
+                    ₹{totalAmount.toFixed(2)}
+                  </TableCell>
                 </TableRow>
               </TableFooter>
             </Table>

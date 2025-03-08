@@ -148,6 +148,8 @@ const AdminDashboard = () => {
               <th className="border p-2">Print Type</th>
               <th className="border p-2">Color Option</th>
               <th className="border p-2">Total Pages</th>
+              <th className="border p-2">estimated time</th>
+              <th className="border p-2">required before</th>
               <th className="border p-2">Status</th>
               <th className="border p-2">Departments</th>
               <th className="border p-2">Actions</th>
@@ -176,6 +178,8 @@ const AdminDashboard = () => {
                 <td className="border p-2">{order.printType}</td>
                 <td className="border p-2">{order.colorOption}</td>
                 <td className="border p-2">{order.totalNoOfPages}</td>
+                <td className="border p-2">{order.estimatedTime}</td>
+                <td className="border p-2">{order.requiredBefore}</td>
                 <td className="border p-2">{order.status}</td>
                 <td className="border p-2">
                   {JSON.stringify(order.departments)}

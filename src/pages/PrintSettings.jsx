@@ -1,4 +1,5 @@
 import { useOrder } from "../context/OrderContext";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Minus } from "lucide-react";
 import {
@@ -23,15 +24,57 @@ import {
 const PrintSettings = () => {
   const { order, updateOrder } = useOrder();
   const navigate = useNavigate();
+  const [minPickupTime, setMinPickupTime] = useState("");
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("print-user"));
+
+    if (!user || !user.token) {
+      toast.error("You need to log in first!");
+      return;
+    }
+    const fetchPendingTime = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5001/api/orders/pending-time",
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
+        );
+        const data = await response.json();
+
+        const additionalTime = data.totalEstimatedTime; // Pending orders' estimated time
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + Math.round(additionalTime / 60)+Math.round(order.estimatedTime / 60)+2);
+
+        const newHours = now.getHours().toString().padStart(2, "0");
+        const newMinutes = now.getMinutes().toString().padStart(2, "0");
+
+        setMinPickupTime(`${newHours}:${newMinutes}`);
+      } catch (error) {
+        console.error("Error fetching estimated time:", error);
+      }
+    };
+
+    fetchPendingTime();
+  }, []);
 
   const handleNext = () => {
+    if (order.requiredBefore && order.requiredBefore < minPickupTime) {
+      alert(`Please select a valid future time after ${minPickupTime}`);
+      return;
+    }
+
     if (
       !order.copyNumber ||
       !order.printType ||
       !order.colorOption ||
-      !order.startPage ||
-      !order.endPage ||
-      !order.totalNoOfPages
+      !order.totalNoOfPages ||
+      !order.requiredBefore
     ) {
       alert("Please complete all print settings before proceeding.");
       return;
@@ -44,8 +87,10 @@ const PrintSettings = () => {
       <div className="w-full max-w-md">
         <Card>
           <CardHeader>
-            <CardTitle>{order.file.name}</CardTitle>
-            <CardDescription>Configure your print options below.</CardDescription>
+            <CardTitle>{order.file?.name || "No file selected"}</CardTitle>
+            <CardDescription>
+              Configure your print options below.{order.maxPag}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* No. of Copies */}
@@ -110,37 +155,87 @@ const PrintSettings = () => {
               </Select>
             </div>
 
-            {/* Start Page */}
             <div>
-              <Label className="mb-2">Start Page</Label>
-              <Input
-                type="number"
-                min="1"
-                value={order.startPage || ""}
-                onChange={(e) => updateOrder({ startPage: parseInt(e.target.value) || "" })}
-              />
+              <Label>Page Selection</Label>
+              <Select
+                value={order.pageSelection}
+                onValueChange={(value) => updateOrder({ pageSelection: value })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Page Option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Pages</SelectItem>
+                  <SelectItem value="custom">Custom Pages</SelectItem>
+                  <SelectItem value="odd">Odd Pages</SelectItem>
+                  <SelectItem value="even">Even Pages</SelectItem>
+                  <SelectItem value="range">Start & End Page</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* End Page */}
-            <div>
-              <Label className="mb-2">End Page</Label>
-              <Input
-                type="number"
-                min={order.startPage || 1}
-                value={order.endPage || ""}
-                onChange={(e) => {
-                  const endPage = parseInt(e.target.value) || "";
-                  updateOrder({
-                    endPage,
-                    totalNoOfPages: order.startPage ? endPage - order.startPage + 1 : "",
-                  });
-                }}
-              />
-            </div>
+            {/* Custom Page Selection */}
+            {order.pageSelection === "custom" && (
+              <div>
+                <Label>Enter Custom Pages (comma-separated)</Label>
+                <Input
+                  type="text"
+                  placeholder="e.g. 1,3,5,7"
+                  value={order.customPages}
+                  onChange={(e) =>
+                    updateOrder({ customPages: e.target.value })
+                  }
+                />
+              </div>
+            )}
+
+            {/* Start & End Page Selection */}
+            {order.pageSelection === "range" && (
+              <div className="flex space-x-4">
+                <div>
+                  <Label>Start Page</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={order.startPage || ""}
+                    onChange={(e) =>
+                      updateOrder({ startPage: parseInt(e.target.value) || "" })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>End Page</Label>
+                  <Input
+                    type="number"
+                    min={order.startPage || 1}
+                    value={order.endPage || ""}
+                    onChange={(e) =>
+                      updateOrder({
+                        endPage: parseInt(e.target.value) || "",
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Total Pages */}
             <div>
-              <Label className="mb-2">Total Pages : {order.totalNoOfPages || ""}</Label>
+              <Label className="mb-2">
+                Total Pages : {order.totalNoOfPages || ""}
+              </Label>
+            </div>
+
+            {/* Pick Up Time */}
+            <div>
+              <Label className="mb-2">Pick-up Time or Required Before</Label>
+              <Input
+                type="time"
+                value={order.requiredBefore || ""}
+                onChange={(e) =>
+                  updateOrder({ requiredBefore: e.target.value })
+                }
+              />
             </div>
           </CardContent>
           <CardFooter>

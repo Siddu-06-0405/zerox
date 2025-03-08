@@ -108,3 +108,17 @@ export const getUserOngoingOrders = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getPendingOrdersTime = async (req, res) => {
+  try {
+    const pendingOrders = await Order.find({ status: "Pending" });
+
+    const totalEstimatedTime = pendingOrders.reduce((sum, order) => {
+      return sum + order.estimatedTime;
+    }, 0);
+
+    res.json({ totalEstimatedTime });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};

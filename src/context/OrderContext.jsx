@@ -4,37 +4,58 @@ const OrderContext = createContext();
 
 export const OrderProvider = ({ children }) => {
   const [order, setOrder] = useState({
-    file: null, // ✅ Stores a single file
+    file: null,
     filename: "",
     copyNumber: 1,
     printType: "Single side",
     colorOption: "Black & White",
-    startPage: null, // ✅ Start page number
-    endPage: null,   // ✅ End page number
-    totalNoOfPages: 0, // ✅ Total number of pages (default to 0)
+    startPage: null,
+    endPage: null,
+    maxPage: 0,
+    totalNoOfPages: 0,
+    pageSelection: "all", // ✅ Store page selection
+    customPages: "", // ✅ For custom input pages
     recordPapers: 0,
     departments: {},
-    totalAmount: 0, 
-    estimatedTime: 0
+    totalAmount: 0,
+    estimatedTime: 0,
+    requiredBefore: "",
   });
 
-  // Calculate total pages whenever startPage or endPage changes
+  // ✅ Update total pages based on pageSelection
   useEffect(() => {
-    if (order.startPage !== null && order.endPage !== null) {
-      const totalPages = Math.max(0, order.endPage - order.startPage + 1);
-      const timer = totalPages*3+30
-      setOrder((prevOrder) => ({
-        ...prevOrder,
-        totalNoOfPages: totalPages,
-        estimatedTime: timer,
-      }));
-    }
-  }, [order.startPage, order.endPage]);
+    let totalPages = 0;
 
-  // Calculate Pricing
+    if (order.pageSelection === "all") {
+      totalPages = order.maxPage; // ✅ Use full document pages
+    } else if (order.pageSelection === "odd") {
+      totalPages = Math.ceil(order.maxPage / 2); // ✅ Approximate odd pages
+    } else if (order.pageSelection === "even") {
+      totalPages = Math.floor(order.maxPage / 2); // ✅ Approximate even pages
+    } else if (order.pageSelection === "custom") {
+      // ✅ Count custom pages (comma-separated values like "1,2,5")
+      totalPages = order.customPages
+        ? order.customPages.split(",").length
+        : 0;
+    } else if (order.pageSelection === "range") {
+      if (order.startPage !== null && order.endPage !== null) {
+        totalPages = Math.max(0, order.endPage - order.startPage + 1);
+      }
+    }
+
+    const estimatedTime = totalPages * 3 + 30; // ✅ Estimate time
+
+    setOrder((prevOrder) => ({
+      ...prevOrder,
+      totalNoOfPages: totalPages,
+      estimatedTime,
+    }));
+  }, [order.pageSelection, order.startPage, order.endPage, order.customPages, order.maxPage]);
+
+  // ✅ Update Pricing when pages, color, or copies change
   useEffect(() => {
     const pricePerPage = order.colorOption === "Black & White" ? 1 : 3;
-    const offlineCharge = pricePerPage * order.totalNoOfPages; // Charge per page
+    const offlineCharge = order.copyNumber * pricePerPage * order.totalNoOfPages;
     const serviceCharge = offlineCharge * 0.2;
     const total = offlineCharge + serviceCharge;
 
@@ -42,12 +63,12 @@ export const OrderProvider = ({ children }) => {
       ...prevOrder,
       totalAmount: total,
     }));
-  }, [order.totalNoOfPages]); // ✅ Recalculates when pages change
+  }, [order.totalNoOfPages, order.colorOption, order.copyNumber]);
 
   const updateOrder = (updates) => {
     setOrder((prevOrder) => ({
       ...prevOrder,
-      ...updates, // ✅ Merge updates
+      ...updates,
     }));
   };
 
