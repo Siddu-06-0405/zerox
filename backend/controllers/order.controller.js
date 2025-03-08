@@ -48,8 +48,8 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields in order data" });
     }
 
-    const filePath = req.file.path;
-    const fileName = req.file.originalname;
+    const filePath = `uploads/${req.file.filename}`;
+    const fileName = req.file.originalname; // Storing relative path;
 
     const newOrder = new Order({
       user: req.user._id,

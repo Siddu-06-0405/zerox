@@ -51,7 +51,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use("/files", express.static(path.join(__dirname, "files")));
-app.use("/C:/Users/csidd/OneDrive/Desktop/zerox/backend/uploads/", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 if (!isDev) {
   app.use(express.static(path.join(__dirname, "/frontend/dist")));
