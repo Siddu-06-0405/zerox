@@ -52,7 +52,7 @@ const UserDashboard = () => {
               <tr key={order._id} className="bg-white">
                 <td className="border p-2">{order._id}</td>
                 <td className="border p-2">{new Date(order.createdAt).toLocaleString()}</td>
-                <td className="border p-2">{order.estimatedTime}</td>
+                <td className="border p-2">{order.estimatedTime/60}</td>
               </tr>
             ))}
           </tbody>

@@ -98,7 +98,7 @@ export const getUserOngoingOrders = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const orders = await Order.find({ user: userId, status: { $ne: "Completed" } })
+    const orders = await Order.find({ status: { $ne: "Completed" } })
       .select("createdAt estimatedTime status")
       .sort({ createdAt: -1 });
 

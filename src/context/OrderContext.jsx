@@ -20,6 +20,7 @@ export const OrderProvider = ({ children }) => {
     totalAmount: 0,
     estimatedTime: 0,
     requiredBefore: "",
+    otp: 0,
   });
 
   // ✅ Update total pages based on pageSelection
@@ -43,7 +44,7 @@ export const OrderProvider = ({ children }) => {
       }
     }
 
-    const estimatedTime = totalPages * 3 + 30; // ✅ Estimate time
+    const estimatedTime = totalPages * 3 + 60;
 
     setOrder((prevOrder) => ({
       ...prevOrder,
@@ -54,9 +55,9 @@ export const OrderProvider = ({ children }) => {
 
   // ✅ Update Pricing when pages, color, or copies change
   useEffect(() => {
-    const pricePerPage = order.colorOption === "Black & White" ? 1 : 3;
+    const pricePerPage = order.colorOption === "Black & White" ? 2 : 5;
     const offlineCharge = order.copyNumber * pricePerPage * order.totalNoOfPages;
-    const serviceCharge = offlineCharge * 0.2;
+    const serviceCharge = Math.ceil(offlineCharge/5)===1?2:Math.ceil(offlineCharge/5)*1.5+0.5;
     const total = offlineCharge + serviceCharge;
 
     setOrder((prevOrder) => ({

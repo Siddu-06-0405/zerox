@@ -28,6 +28,10 @@ const YourCart = () => {
   const { order, updateOrder } = useOrder();
   const navigate = useNavigate();
 
+  function generateOTP() {
+    return Math.floor(1000 + Math.random() * 9000);
+  }
+
   if (!order) return <p>Loading order details...</p>;
   if (!order.file) {
     toast.error("No file selected.");
@@ -70,6 +74,7 @@ const YourCart = () => {
       totalAmount: totalAmount.toFixed(2),
       estimatedTime: order.estimatedTime,
       requiredBefore: order.requiredBefore,
+      otp: generateOTP()
     };
 
     formData.append("order", JSON.stringify(orderData));

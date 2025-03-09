@@ -18,6 +18,7 @@ const orderSchema = new mongoose.Schema(
     estimatedTime: { type: Number, required: true },
     requiredBefore: { type: String, required: true },
     pageSelection: { type: String, required: true },
+    otp:{ type: String, required: true },
     status: { type: String, default: "Pending", enum: ["Pending", "In Progress", "Completed", "Cancelled"] },
   },
   { timestamps: true }

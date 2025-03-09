@@ -33,10 +33,6 @@ const App = () => {
   // Convert fileData to boolean based on "true" or "false" string
   const booleanFileData = fileData ? fileData.trim().toLowerCase() === "true" : null;
 
-  if (fileData) {
-    console.log(booleanFileData); // Will log 'true' or 'false' based on the file content
-  }
-
   return (
     <>
 
@@ -56,7 +52,7 @@ const App = () => {
           />
           <Route
             path="/ongoing"
-            element={authUser && booleanFileData ? <Ongoing /> : <Navigate to="/login" />}
+            element={authUser ? <Ongoing /> : <Navigate to="/login" />}
           />
           <Route
             path="/admindashboard"
@@ -84,29 +80,29 @@ const App = () => {
           />
 
           {/* Protected Routes (Only logged-in users can access) */}
-          <Route
+          {/* <Route
             path="/options"
-            element={authUser && booleanFileData ? <PrintOptions /> : <Navigate to="/login" />}
-          />
+            element={authUser && booleanFileData ? <PrintOptions messages={booleanFileData}/> : <Navigate to="/login" />}
+          /> */}
           <Route
             path="/settings"
-            element={authUser && booleanFileData ? <PrintSettings /> : <Navigate to="/login" />}
+            element={authUser && booleanFileData ? <PrintSettings messages={booleanFileData}/> : <Navigate to="/login" />}
           />
           <Route
             path="/upload"
-            element={authUser && booleanFileData ? <UploadPdf /> : <Navigate to="/login" />}
+            element={authUser && booleanFileData ? <UploadPdf messages={booleanFileData}/> : <Navigate to="/login" />}
           />
           <Route
             path="/department"
-            element={authUser && booleanFileData ? <SelectDepartment /> : <Navigate to="/login" />}
+            element={authUser && booleanFileData ? <SelectDepartment messages={booleanFileData}/> : <Navigate to="/login" />}
           />
           <Route
             path="/cart"
-            element={authUser && booleanFileData ? <YourCart /> : <Navigate to="/login" />}
+            element={authUser && booleanFileData ? <YourCart messages={booleanFileData}/> : <Navigate to="/login" />}
           />
           <Route
             path="/ongoing"
-            element={authUser && booleanFileData ? <Ongoing /> : <Navigate to="/login" />}
+            element={authUser && booleanFileData ? <Ongoing messages={booleanFileData}/> : <Navigate to="/login" />}
           />
           <Route
             path="/admindashboard"

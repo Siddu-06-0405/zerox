@@ -14,6 +14,7 @@ import { Printer, PackageCheck } from "lucide-react";
 
 const Home = (props) => {
   const servicesAvailable = props.messages !== false;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 md:p-10">
       <div className="w-full max-w-md space-y-9">

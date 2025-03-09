@@ -25,16 +25,17 @@ const PrintSettings = () => {
   const { order, updateOrder } = useOrder();
   const navigate = useNavigate();
   const [minPickupTime, setMinPickupTime] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("print-user"));
-
-    if (!user || !user.token) {
-      toast.error("You need to log in first!");
-      return;
-    }
+  
     const fetchPendingTime = async () => {
       try {
+        const user = JSON.parse(localStorage.getItem("print-user"));
+    
+        if (!user || !user.token) {
+          toast.error("You need to log in first!");
+          return;
+        }
         const response = await fetch(
           "http://localhost:5001/api/orders/pending-time",
           {
@@ -58,17 +59,16 @@ const PrintSettings = () => {
       } catch (error) {
         console.error("Error fetching estimated time:", error);
       }
+      setLoading(false);
     };
-
     fetchPendingTime();
-  }, []);
 
-  const handleNext = () => {
-    if (order.requiredBefore && order.requiredBefore < minPickupTime) {
-      alert(`Please select a valid future time after ${minPickupTime}`);
-      return;
-    }
+    // console.log(minPickupTime)
 
+  const handleNext = async () => {
+    setLoading(true);
+
+    await fetchPendingTime();
     if (
       !order.copyNumber ||
       !order.printType ||
@@ -77,6 +77,10 @@ const PrintSettings = () => {
       !order.requiredBefore
     ) {
       alert("Please complete all print settings before proceeding.");
+      return;
+    }
+    if (order.requiredBefore && order.requiredBefore < minPickupTime) {
+      alert(`Please select a valid future time after ${minPickupTime}`);
       return;
     }
     navigate("/cart");
@@ -89,7 +93,7 @@ const PrintSettings = () => {
           <CardHeader>
             <CardTitle>{order.file?.name || "No file selected"}</CardTitle>
             <CardDescription>
-              Configure your print options below.{order.maxPag}
+              Configure your print options below.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -226,6 +230,11 @@ const PrintSettings = () => {
               </Label>
             </div>
 
+            <div>
+              <Label className="mb-2">
+                Estimated Time for printing your order : {order.estimatedTime/60<1?order.estimatedTime+" seconds": order.estimatedTime/60+" minutes"} 
+              </Label>
+            </div>
             {/* Pick Up Time */}
             <div>
               <Label className="mb-2">Pick-up Time or Required Before</Label>
@@ -239,8 +248,8 @@ const PrintSettings = () => {
             </div>
           </CardContent>
           <CardFooter>
-            <Button onClick={handleNext} className="w-full">
-              Next
+          <Button onClick={handleNext} className="w-full" disabled={loading}>
+              {loading ? "Loading..." : "Next"}
             </Button>
           </CardFooter>
         </Card>
