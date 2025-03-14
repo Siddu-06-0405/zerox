@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Order from "../models/order.model.js";
 import multer from "multer";
 import path from "path";
@@ -44,7 +45,7 @@ export const createOrder = async (req, res) => {
     console.log(orderData);
 
     if (!orderData.totalAmount || !orderData.totalNoOfPages ||
-        !orderData.colorOption || !orderData.printType || !orderData.copyNumber) {
+      !orderData.colorOption || !orderData.printType || !orderData.copyNumber) {
       return res.status(400).json({ message: "Missing required fields in order data" });
     }
 
@@ -57,7 +58,7 @@ export const createOrder = async (req, res) => {
       fileName,
       ...orderData,
     });
-    
+
     const savedOrder = await newOrder.save();
     console.log("Order saved:", savedOrder);
 
@@ -82,22 +83,33 @@ export const updateOrderStatus = async (req, res) => {
   const { status } = req.body;
 
   try {
+    // console.log("Updating order:", orderId, "to", status);
+
+    // 🛠 Check if orderId is valid
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      console.error("Invalid Order ID:", orderId);
+      return res.status(400).json({ error: "Invalid Order ID" });
+    }
+
     const order = await Order.findById(orderId);
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    if (!order) {
+      console.error("Order not found:", orderId);
+      return res.status(404).json({ error: "Order not found" });
+    }
 
     order.status = status;
     await order.save();
 
+    // console.log("Order updated successfully:", order);
     res.json({ message: "Order updated", order });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    // console.error("Update order error:", error); // Log full error
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
 export const getUserOngoingOrders = async (req, res) => {
   try {
-    const userId = req.user.id;
-
     const orders = await Order.find({ status: { $ne: "Completed" } })
       .select("createdAt estimatedTime status")
       .sort({ createdAt: -1 });
@@ -122,3 +134,20 @@ export const getPendingOrdersTime = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const getUserOrders = async (req, res) => {
+  try {
+    const userId = req.user?.id; // Ensure user exists
+    if (!userId) return res.status(401).json({ message: "Unauthorized access" });
+
+    // console.log("Fetching orders for user:", userId);
+
+    // Convert userId to ObjectId
+    const orders = await Order.find({ user: new mongoose.Types.ObjectId(userId) }).sort({ createdAt: -1 });
+
+    res.json({ orders });
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    res.status(500).json({ message: "Server error. Try again later." });
+  }
+}

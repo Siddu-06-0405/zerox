@@ -3,14 +3,23 @@ import ConfirmModal from "../components/ConfirmModal";
 import AdminLogoutButton from "./AdminLogoutButton";
 import useAdmin from "../hooks/useAdmin";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [otpVisibility, setOtpVisibility] = useState({});
 
   const { admin } = useAdmin();
+
+  const toggleOtpVisibility = (orderId) => {
+    setOtpVisibility((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId], // Toggle only for the specific order
+    }));
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -106,6 +115,7 @@ const AdminDashboard = () => {
   };
 
   const handleConfirm = async () => {
+    console.log("Updating order:", selectedOrderId, "to", selectedStatus);
     try {
       await admin(selectedOrderId, selectedStatus);
       setIsModalOpen(false);
@@ -142,6 +152,7 @@ const AdminDashboard = () => {
           <thead>
             <tr className="bg-gray-200">
               <th className="border p-2">User</th>
+              <th className="border p-2">OTP</th>
               <th className="border p-2">File Name</th>
               <th className="border p-2">File Path</th>
               <th className="border p-2">Copies</th>
@@ -164,6 +175,17 @@ const AdminDashboard = () => {
                 }
               >
                 <td className="border p-2">{order.user.username}</td>
+                <td className="border p-2">
+                  <span className="text-lg font-semibold">
+                  {otpVisibility[order._id] ? order.otp : "••••••"}
+                  </span>
+                  <button
+                    onClick={() => toggleOtpVisibility(order._id)}
+                    className="p-2 bg-white rounded-full shadow"
+                  >
+                    {otpVisibility[order._id] ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </td>
                 <td className="border p-2">{order.fileName}</td>
                 <td className="border p-2">
                   <a

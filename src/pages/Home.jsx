@@ -95,10 +95,12 @@ const Home = (props) => {
               See your queue position and status: Printed, Ready, or Delivered.
             </p>
             <Separator className="my-4" />
-            <Button size="lg" className="w-full " variant="outline">
-              Track orders
-              <PackageCheck size={24} />
-            </Button>
+            <Link to="/my-orders">
+              <Button size="lg" className="w-full " variant="outline">
+                Track orders
+                <PackageCheck size={24} />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 

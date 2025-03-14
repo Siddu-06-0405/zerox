@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
+import MyOrders from "./pages/MyOrders";
 
 
 const App = () => {
@@ -53,6 +54,10 @@ const App = () => {
           <Route
             path="/ongoing"
             element={authUser ? <Ongoing /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/my-orders"
+            element={authUser ? <MyOrders /> : <Navigate to="/login" />}
           />
           <Route
             path="/admindashboard"
@@ -102,7 +107,11 @@ const App = () => {
           />
           <Route
             path="/ongoing"
-            element={authUser && booleanFileData ? <Ongoing messages={booleanFileData}/> : <Navigate to="/login" />}
+            element={authUser ? <Ongoing messages={booleanFileData}/> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/my-orders"
+            element={authUser ? <MyOrders /> : <Navigate to="/login" />}
           />
           <Route
             path="/admindashboard"
