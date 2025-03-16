@@ -3,6 +3,7 @@ import Order from "../models/order.model.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import moment from "moment";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -50,7 +51,7 @@ export const createOrder = async (req, res) => {
     }
 
     const filePath = `uploads/${req.file.filename}`;
-    const fileName = req.file.originalname; // Storing relative path;
+    const fileName = req.file.originalname; // Storing relative path
 
     const newOrder = new Order({
       user: req.user._id,
@@ -61,6 +62,10 @@ export const createOrder = async (req, res) => {
 
     const savedOrder = await newOrder.save();
     console.log("Order saved:", savedOrder);
+
+    // Emit the event for real-time updates
+    req.io.emit("orders_update", await Order.find().populate("user", "username"));
+    // console.log("📢 Emitted new order update to admins");
 
     res.status(201).json(savedOrder);
   } catch (error) {
@@ -151,3 +156,47 @@ export const getUserOrders = async (req, res) => {
     res.status(500).json({ message: "Server error. Try again later." });
   }
 }
+
+export const getSlots = async (req, res) => {
+  try {
+    const now = moment();
+    const openingTime = moment().set({ hour: 9, minute: 0, second: 0 });
+    const closingTime = moment().set({ hour: 22, minute: 0, second: 0 }); // 10 PM
+    const slotDuration = 15; // 15-minute slots
+
+    let slots = [];
+    let slotStart = openingTime.clone();
+
+    while (slotStart.isBefore(closingTime)) {
+      let slotEnd = slotStart.clone().add(slotDuration, "minutes");
+      slots.push({
+        start: slotStart.toISOString(),
+        end: slotEnd.toISOString(),
+        count: 0,
+      });
+      slotStart = slotEnd; // Move to the next slot
+    }
+
+    // Fetch orders with requiredBefore today
+    const orders = await Order.find();
+
+    // Count orders per slot
+    orders.forEach((order) => {
+      let orderTime = moment(order.requiredBefore, "HH:mm");
+      for (let slot of slots) {
+        if (orderTime.isBetween(slot.start, slot.end, null, "[)")) {
+          slot.count += 1;
+          break;
+        }
+      }
+    });
+
+    // Remove past slots
+    slots = slots.filter((slot) => moment(slot.end).isAfter(now));
+
+    res.json(slots);
+  } catch (error) {
+    console.error("Error fetching slots:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

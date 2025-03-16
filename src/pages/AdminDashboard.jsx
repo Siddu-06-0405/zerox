@@ -4,6 +4,15 @@ import AdminLogoutButton from "./AdminLogoutButton";
 import useAdmin from "../hooks/useAdmin";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5001", {
+  transports: ["websocket", "polling"],
+  withCredentials: true,
+  auth: {
+    role: "admin", // Sending the admin role in headers
+  },
+});
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -14,6 +23,16 @@ const AdminDashboard = () => {
 
   const { admin } = useAdmin();
 
+  useEffect(() => {
+    socket.on("orders_update", (updatedOrders) => {
+      console.log("Orders updated:", updatedOrders);
+      setOrders(updatedOrders);
+    });
+
+    return () => {
+      socket.off("orders_update");
+    };
+  }, []);
   const toggleOtpVisibility = (orderId) => {
     setOtpVisibility((prev) => ({
       ...prev,
@@ -99,7 +118,9 @@ const AdminDashboard = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`, // <-- Add this
         },
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -167,64 +188,79 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
-              <tr
-                key={order._id}
-                className={
-                  order.status === "Completed" ? "bg-green-400" : "bg-red-400"
-                }
-              >
-                <td className="border p-2">{order.user.username}</td>
-                <td className="border p-2">
-                  <span className="text-lg font-semibold">
-                  {otpVisibility[order._id] ? order.otp : "••••••"}
-                  </span>
-                  <button
-                    onClick={() => toggleOtpVisibility(order._id)}
-                    className="p-2 bg-white rounded-full shadow"
-                  >
-                    {otpVisibility[order._id] ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </td>
-                <td className="border p-2">{order.fileName}</td>
-                <td className="border p-2">
-                  <a
-                    href={`http://localhost:5001/${order.filePath}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Download
-                  </a>
-                </td>
-                <td className="border p-2">{order.copyNumber}</td>
-                <td className="border p-2">{order.printType}</td>
-                <td className="border p-2">{order.colorOption}</td>
-                <td className="border p-2">{order.totalNoOfPages}</td>
-                <td className="border p-2">{order.estimatedTime}</td>
-                <td className="border p-2">{order.requiredBefore}</td>
-                <td className="border p-2">{order.status}</td>
-                <td className="border p-2">
-                  {JSON.stringify(order.departments)}
-                </td>
-                <td className="border p-2">
-                  {order.status === "Completed" ? (
+            {orders
+              .sort((a, b) => {
+                // Prioritize pending orders
+                if (a.status === "Pending" && b.status !== "Pending") return -1;
+                if (a.status !== "Pending" && b.status === "Pending") return 1;
+            
+                // Sort by requiredBefore time in HH:MM format
+                const timeA = a.requiredBefore.split(":").map(Number);
+                const timeB = b.requiredBefore.split(":").map(Number);
+                return timeA[0] * 60 + timeA[1] - (timeB[0] * 60 + timeB[1]); // Convert HH:MM to minutes and compare
+              })
+              .map((order) => (
+                <tr
+                  key={order._id}
+                  className={
+                    order.status === "Completed" ? "bg-green-400" : "bg-red-400"
+                  }
+                >
+                  <td className="border p-2">{order.user.username}</td>
+                  <td className="border p-2">
+                    <span className="text-lg font-semibold">
+                      {otpVisibility[order._id] ? order.otp : "••••••"}
+                    </span>
                     <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => markOrderAsDone(order._id, "Pending")}
+                      onClick={() => toggleOtpVisibility(order._id)}
+                      className="p-2 bg-white rounded-full shadow"
                     >
-                      Mark as Pending
+                      {otpVisibility[order._id] ? (
+                        <EyeOff size={20} />
+                      ) : (
+                        <Eye size={20} />
+                      )}
                     </button>
-                  ) : (
-                    <button
-                      onClick={() => markOrderAsDone(order._id, "Completed")}
-                      className="btn btn-primary btn-sm"
+                  </td>
+                  <td className="border p-2">{order.fileName}</td>
+                  <td className="border p-2">
+                    <a
+                      href={`http://localhost:5001/${order.filePath}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      Mark as Completed
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                      Download
+                    </a>
+                  </td>
+                  <td className="border p-2">{order.copyNumber}</td>
+                  <td className="border p-2">{order.printType}</td>
+                  <td className="border p-2">{order.colorOption}</td>
+                  <td className="border p-2">{order.totalNoOfPages}</td>
+                  <td className="border p-2">{order.estimatedTime}</td>
+                  <td className="border p-2">{order.requiredBefore}</td>
+                  <td className="border p-2">{order.status}</td>
+                  <td className="border p-2">
+                    {JSON.stringify(order.departments)}
+                  </td>
+                  <td className="border p-2">
+                    {order.status === "Completed" ? (
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => markOrderAsDone(order._id, "Pending")}
+                      >
+                        Mark as Pending
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => markOrderAsDone(order._id, "Completed")}
+                        className="btn btn-primary btn-sm"
+                      >
+                        Mark as Completed
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

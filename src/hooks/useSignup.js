@@ -15,7 +15,8 @@ const useSignup = () => {
       const res = await fetch("http://localhost:5001/api/auth/signup",{
         method: "POST",
         headers: { "Content-Type": "application/json"},
-        body: JSON.stringify({ fullName, username, password, confirmPassword, gender })
+        body: JSON.stringify({ fullName, username, password, confirmPassword, gender }),
+        credentials: "include", // ✅ Send cookies
       })
 
       const data = await res.json();
