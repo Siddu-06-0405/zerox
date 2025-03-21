@@ -16,6 +16,7 @@ import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
 import MyOrders from "./pages/MyOrders";
+import SlotSelection from "./pages/Slots";
 
 
 const App = () => {
@@ -100,6 +101,10 @@ const App = () => {
           <Route
             path="/department"
             element={authUser && booleanFileData ? <SelectDepartment messages={booleanFileData}/> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/slots"
+            element={authUser && booleanFileData ? <SlotSelection messages={booleanFileData}/> : <Navigate to="/login" />}
           />
           <Route
             path="/cart"
