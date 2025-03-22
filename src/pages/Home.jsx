@@ -43,11 +43,12 @@ const Home = (props) => {
             {servicesAvailable ? (
               <div className="flex flex-col gap-4">
                 <Link to="/upload">
-                  <Button className="w-full">Get Your Print Now <Printer size={24} className="inline-block mr-2" /></Button>
+                  <Button className="w-full">
+                    Get Your Print Now{" "}
+                    <Printer size={24} className="inline-block mr-2" />
+                  </Button>
                 </Link>
-                <Link to="/ongoing">
-                  
-                </Link>
+                <Link to="/ongoing"></Link>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
@@ -59,31 +60,29 @@ const Home = (props) => {
           </CardContent>
           <CardFooter>
             {servicesAvailable ? (
-              <div  className="space-x-2   flex">
-              <p className="text-sm text-gray-500">you can see all the orders which we are currently severing live here </p>
-              <Link to="/ongoing">
-                <Button variant="outline" className="">
-                Ongoing Orders
-              </Button>
-              </Link>
-
+              <div className="space-x-2   flex">
+                <p className="text-sm text-gray-500">
+                  you can see all the orders which we are currently severing
+                  live here{" "}
+                </p>
+                <Link to="/ongoing">
+                  <Button variant="outline" className="">
+                    Ongoing Orders
+                  </Button>
+                </Link>
               </div>
-              
             ) : (
-              <div  className="space-x-2   flex">
-              <p>Check back soon for updates.</p>
-              <Link to="/ongoing">
-                <Button variant="outline" className="">
-                Ongoing Orders
-              </Button>
-              </Link>
+              <div className="space-x-2   flex">
+                <p>Check back soon for updates.</p>
+                <Link to="/ongoing">
+                  <Button variant="outline" className="">
+                    Ongoing Orders
+                  </Button>
+                </Link>
               </div>
             )}
           </CardFooter>
         </Card>
-
-     
-
 
         {/* Track Your Order Card */}
         <Card>
@@ -103,8 +102,6 @@ const Home = (props) => {
             </Link>
           </CardContent>
         </Card>
-
-
 
         {/* Easy Pickup Card */}
         <Card>
@@ -127,10 +124,16 @@ const Home = (props) => {
               ))}
             </div>
           </CardContent>
+          <Link to="/change-details">
+            <Button size="lg" className="w-full " variant="outline">
+              settings
+              <PackageCheck size={24} />
+            </Button>
+          </Link>
         </Card>
 
-           {/* Orders Processed Card */}
-           {/* <Card>
+        {/* Orders Processed Card */}
+        {/* <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold">
               Orders Processed

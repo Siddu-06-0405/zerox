@@ -14,10 +14,12 @@ import { Server } from "socket.io";
 import http from "http";
 import Order from "./models/order.model.js";
 import User from "./models/user.model.js";
+import Razorpay from "razorpay";
 
 import authRoutes from "./routes/auth.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
 import connectToMongoDB from "./db/connectToMongoDB.js";
 
 dotenv.config();
@@ -85,17 +87,17 @@ const sendOrderUpdate = async () => {
 // 🎯 MongoDB Change Stream to detect order updates
 const changeStream = Order.watch([{ $match: { operationType: "insert" } }]);
 changeStream.on("change", async () => {
-  console.log("📢 New order detected in the database!");
+  // console.log("📢 New order detected in the database!");
   sendOrderUpdate();
 });
 
 // 🟢 WebSocket connection handling
 io.on("connection", (socket) => {
-  console.log(`🔌 New connection: ${socket.user.username} (Role: ${socket.role})`);
+  // console.log(`🔌 New connection: ${socket.user.username} (Role: ${socket.role})`);
 
   if (socket.role === "admin") {
     socket.join("admins");
-    console.log("✅ Admin joined room: admins");
+    // console.log("✅ Admin joined room: admins");
     sendOrderUpdate();
   }
   const sendOrderCount = async () => {
@@ -108,7 +110,7 @@ io.on("connection", (socket) => {
   // Listen for changes in the Order collection
   const changeStream = Order.watch();
 changeStream.on("change", async (change) => {
-  console.log("📢 Order collection changed:", change); // Debugging log
+  // console.log("📢 Order collection changed:", change); // Debugging log
   sendOrderCount(); // Ensure this is called
 });
 
@@ -119,12 +121,13 @@ changeStream.on("change", async (change) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`❌ Disconnected: ${socket.user.username}`);
+    // console.log(`❌ Disconnected: ${socket.user.username}`);
   });
 });
 
 // 🛠️ Express Middleware & Routes
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use(
@@ -140,6 +143,12 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get("/api/getkey",(req,res)=>{
+  res.status(200).json({
+    key: process.env.RAZORPAY_API_KEY
+  })
+});
+
 // 🗂️ File Upload Setup
 const uploadPath = path.join(__dirname, "uploads/");
 if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
@@ -153,6 +162,7 @@ const upload = multer({ storage });
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // 📂 Static file serving
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -164,6 +174,11 @@ if (!isDev) {
     res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
   });
 }
+
+export const instance = new Razorpay({
+  key_id: process.env.RAZORPAY_API_KEY,
+  key_secret: process.env.RAZORPAY_API_SECRET,
+});
 
 // 🚀 Start the server
 server.listen(PORT, () => {

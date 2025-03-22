@@ -27,17 +27,17 @@ const MyOrders = () => {
         navigate("/login");
         return;
       }
-
+    
       try {
-        const response = await fetch(
-          `http://localhost:5001/api/orders/user-orders`,
-          {
-            method: "GET",
-            credentials: "include",
-            headers: { Authorization: `Bearer ${user.token}` },
-          }
-        );
-
+        const response = await fetch("http://localhost:5001/api/orders/user-orders", {
+          method: "GET",
+          credentials: "include",
+          headers: { 
+            Authorization: `Bearer ${user.token}`, 
+            "Content-Type": "application/json"
+          },
+        });
+    
         const data = await response.json();
         if (response.ok) {
           setOrders(data.orders);
@@ -48,7 +48,7 @@ const MyOrders = () => {
         console.error("Error fetching orders:", error);
         toast.error("Network error. Try again later.");
       }
-    };
+    };    
 
     fetchOrders();
   }, []);
@@ -56,7 +56,7 @@ const MyOrders = () => {
   const toggleOtpVisibility = (orderId) => {
     setOtpVisibility((prev) => ({
       ...prev,
-      [orderId]: !prev[orderId], // Toggle only for the specific order
+      [orderId]: !prev[orderId],
     }));
   };
 

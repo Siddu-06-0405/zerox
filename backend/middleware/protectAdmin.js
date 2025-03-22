@@ -28,7 +28,7 @@ export const protectAdmin = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        console.log("Error in protectAdmin middleware:", error.message);
+        // console.log("Error in protectAdmin middleware:", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 };

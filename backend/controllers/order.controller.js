@@ -26,7 +26,7 @@ const upload = multer({ storage }).single("file");
 
 export const createOrder = async (req, res) => {
   try {
-    console.log("Uploaded file:", req.file);
+    // console.log("Uploaded file:", req.file);
     console.log("Request body:", req.body);
     console.log("User making request:", req.user);
 
@@ -43,7 +43,7 @@ export const createOrder = async (req, res) => {
     }
 
     const orderData = JSON.parse(req.body.order);
-    console.log(orderData);
+    // console.log(orderData);
 
     if (!orderData.totalAmount || !orderData.totalNoOfPages ||
       !orderData.colorOption || !orderData.printType || !orderData.copyNumber) {
@@ -65,7 +65,6 @@ export const createOrder = async (req, res) => {
 
     // Emit the event for real-time updates
     req.io.emit("orders_update", await Order.find().populate("user", "username"));
-    // console.log("📢 Emitted new order update to admins");
 
     res.status(201).json(savedOrder);
   } catch (error) {
@@ -142,50 +141,61 @@ export const getPendingOrdersTime = async (req, res) => {
 
 export const getUserOrders = async (req, res) => {
   try {
-    const userId = req.user?.id; // Ensure user exists
+    const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Unauthorized access" });
 
-    // console.log("Fetching orders for user:", userId);
+    console.log("Fetching orders for user:", userId);
 
-    // Convert userId to ObjectId
-    const orders = await Order.find({ user: new mongoose.Types.ObjectId(userId) }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
+
+    console.log("Orders fetched:", orders);
 
     res.json({ orders });
   } catch (error) {
     console.error("Error fetching user orders:", error);
     res.status(500).json({ message: "Server error. Try again later." });
   }
-}
+};
 
 export const getSlots = async (req, res) => {
   try {
     const now = moment();
     const openingTime = moment().set({ hour: 9, minute: 0, second: 0 });
-    const closingTime = moment().set({ hour: 22, minute: 0, second: 0 }); // 10 PM
+    const closingTime = moment().set({ hour: 23, minute: 55, second: 0 }); // Adjust as needed (e.g., 10 PM)
     const slotDuration = 15; // 15-minute slots
+    const timePerPage = 1/20; // Assuming 1 minute per page, adjust as necessary
 
     let slots = [];
     let slotStart = openingTime.clone();
 
+    // Generate slots
     while (slotStart.isBefore(closingTime)) {
       let slotEnd = slotStart.clone().add(slotDuration, "minutes");
       slots.push({
         start: slotStart.toISOString(),
         end: slotEnd.toISOString(),
         count: 0,
+        timeCompleted: 0, // Initialize timeCompleted for each slot
       });
       slotStart = slotEnd; // Move to the next slot
     }
 
-    // Fetch orders with requiredBefore today
-    const orders = await Order.find();
+    // Fetch orders relevant to the slots
+    const orders = await Order.find({
+      requiredBefore: {
+        $gte: openingTime.format("HH:mm"),
+        $lt: closingTime.format("HH:mm"),
+      },
+    });
 
-    // Count orders per slot
+    // Count orders and calculate timeCompleted per slot
     orders.forEach((order) => {
       let orderTime = moment(order.requiredBefore, "HH:mm");
+
       for (let slot of slots) {
         if (orderTime.isBetween(slot.start, slot.end, null, "[)")) {
           slot.count += 1;
+          slot.timeCompleted += order.totalNoOfPages * timePerPage; // Add time for each order in the slot
           break;
         }
       }

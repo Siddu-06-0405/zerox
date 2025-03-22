@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useOrder } from "../context/OrderContext"; // Import order context
+import { useNavigate } from "react-router-dom"; // Import the navigation hook from React Router
 import moment from "moment";
 
 const SlotSelection = () => {
-  const { order } = useOrder(); // Get order details
+  const { order, updateOrder } = useOrder(); // Get order details and update function
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const navigate = useNavigate(); // Initialize navigate function
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -23,9 +25,9 @@ const SlotSelection = () => {
 
   // Function to calculate remaining pages a slot can handle
   const calculateRemainingPages = (slot) => {
-    const maxPagesPerSlot = 80; // Each slot can handle up to 80 pages
-    const usedPages = slot.count * 80; // Estimate based on existing orders
-    return Math.max(0, maxPagesPerSlot - usedPages);
+    const duration = 14 * 60; // Each slot can handle up to 80 pages (15 minutes * 60 seconds)
+    const timeCompleted = (slot.timeCompleted + slot.count) * 60; // Total time for orders in that slot (in seconds)
+    return Math.max(0, (duration - timeCompleted) / 3); // Assuming each page takes 3 seconds
   };
 
   // Handle slot selection
@@ -34,7 +36,22 @@ const SlotSelection = () => {
       alert("Not enough space in this slot! Please choose another.");
       return;
     }
-    setSelectedSlot(slot.start);
+
+    // Calculate requiredBefore
+    const slotStartTime = moment(slot.start); // Slot start time
+    const timeCompletedInMinutes = slot.timeCompleted; // Time spent in the slot (in minutes)
+    const estimatedTimeInSeconds = order.estimatedTime; // Estimated time of the order (in seconds)
+
+    const requiredBefore = slotStartTime
+      .add(timeCompletedInMinutes, "minutes")
+      .add(estimatedTimeInSeconds, "seconds")
+      .format("HH:mm"); // Format the result as "HH:mm"
+
+    // Update the order's requiredBefore value
+    updateOrder({ requiredBefore });
+
+    // Navigate to the /cart page
+    navigate("/cart");
   };
 
   return (
@@ -49,12 +66,12 @@ const SlotSelection = () => {
               className={`p-2 rounded-lg border text-sm ${
                 selectedSlot === slot.start
                   ? "bg-blue-500 text-black"
-                  : remainingPages > 0
+                  : remainingPages > 0 && remainingPages>=order.totalNoOfPages
                   ? "bg-green-500 hover:bg-green-600"
                   : "bg-red-200 cursor-not-allowed"
               }`}
               onClick={() => handleSlotSelection(slot)}
-              disabled={remainingPages === 0}
+              disabled={remainingPages === 0 || remainingPages<order.totalNoOfPages}
             >
               {moment(slot.start).format("hh:mm A")} -{" "}
               {moment(slot.end).format("hh:mm A")} <br />
@@ -62,6 +79,9 @@ const SlotSelection = () => {
                 {remainingPages > 0
                   ? `Available: ${remainingPages} pages`
                   : "Slot Full"}
+              </span>
+              <span className="text-xs">
+                {slot.timeCompleted}
               </span>
             </button>
           );

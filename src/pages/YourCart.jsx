@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import axios from "axios";
 
 const API_URL = "http://localhost:5001";
 
@@ -28,21 +29,23 @@ const YourCart = () => {
   const { order, updateOrder } = useOrder();
   const navigate = useNavigate();
 
-  function generateOTP() {
-    return Math.floor(1000 + Math.random() * 9000);
-  }
-
   if (!order) return <p>Loading order details...</p>;
-  if (!order.file) {
-    toast.error("No file selected.");
-    return;
-  }
 
-  // Pricing Calculation
   const pricePerPage = order.colorOption === "Black & White" ? 1 : 3;
-  const offlineCharge = pricePerPage * order.totalNoOfPages;
-  const serviceCharge = offlineCharge * 0.2;
-  const totalAmount = offlineCharge + serviceCharge;
+  const offlineCharge = order.copyNumber * pricePerPage * order.totalNoOfPages;
+  const serviceCharge =
+    Math.ceil(offlineCharge / 5) === 1
+      ? 2
+      : Math.ceil(offlineCharge / 5) * 1.5 + 0.5;
+
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   const handleSubmitOrder = async () => {
     const user = JSON.parse(localStorage.getItem("print-user"));
@@ -50,67 +53,50 @@ const YourCart = () => {
       toast.error("You need to log in first!");
       return;
     }
-    if (!order.file) {
-      toast.error("No file selected. Please upload your PDF first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", order.file);
-    formData.append("fileName", order.file.name);
-
-    const orderData = {
-      copyNumber: order.copyNumber,
-      startPage: order.startPage,
-      endPage: order.endPage,
-      maxPage: order.maxPage,
-      totalNoOfPages: order.totalNoOfPages,
-      pageSelection: order.pageSelection,
-      recordPapers: order.recordPapers,
-      printType: order.printType,
-      colorOption: order.colorOption,
-      customPages: order.customPages,
-      departments: order.departments,
-      totalAmount: totalAmount.toFixed(2),
-      estimatedTime: order.estimatedTime,
-      requiredBefore: order.requiredBefore,
-      otp: generateOTP()
-    };
-
-    formData.append("order", JSON.stringify(orderData));
 
     try {
-      const response = await fetch(`${API_URL}/api/orders/place-order`, {
-        method: "POST",
-        credentials: "include",
-        headers: { Authorization: `Bearer ${user.token}` },
-        body: formData,
+      // Convert file to Base64 for session storage
+      const base64File = await fileToBase64(order.file);
+      sessionStorage.setItem("pending-file", base64File);
+
+      // Store order details excluding the file
+      const storedOrder = {
+        ...order,
+        fileName: order.file.name,
+      };
+      localStorage.setItem("pending-order", JSON.stringify(storedOrder));
+
+      const userId = user._id;
+      const {
+        data: { key },
+      } = await axios.get(`${API_URL}/api/getkey`);
+      const {
+        data: { razorOrder },
+      } = await axios.post(`${API_URL}/api/payment/checkout`, {
+        amount: order.totalAmount,
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        toast.success("Order placed successfully!");
-        setTimeout(() => {
-          updateOrder({
-            file: null,
-            copyNumber: 1,
-            startPage: null,
-            endPage: null,
-            totalNoOfPages: 0,
-            printType: "Single side",
-            colorOption: "Black & White",
-            recordPapers: 0,
-            departments: {},
-            totalAmount: 0,
-          });
-          navigate("/");
-        }, 1500);
-      } else {
-        toast.error(data.message || "Failed to place order.");
-      }
+      const options = {
+        key,
+        amount: razorOrder.amount,
+        currency: "INR",
+        name: "ZEROX",
+        description: "Test Transaction",
+        order_id: razorOrder.id,
+        callback_url: `${API_URL}/api/payment/payment-verification?userId=${userId}`,
+        prefill: {
+          name: user.name,
+          email: user.email || "test@gmail.com",
+          contact: user.phone || "9999999999",
+        },
+        theme: { color: "#050505" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
-      console.error("Order submission error:", error);
-      toast.error("Network error. Try again later.");
+      console.error("File conversion error:", error);
+      toast.error("Failed to process the order.");
     }
   };
 
@@ -135,7 +121,7 @@ const YourCart = () => {
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell>file name</TableCell>
+                  <TableCell>File Name</TableCell>
                   <TableCell>{order.file.name}</TableCell>
                 </TableRow>
                 <TableRow>
@@ -148,22 +134,22 @@ const YourCart = () => {
                 </TableRow>
                 {order.pageSelection === "range" && (
                   <>
-                  <TableRow>
-                    <TableCell>Start Page</TableCell>
-                    <TableCell>{order.startPage}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>End Page</TableCell>
-                    <TableCell>{order.endPage}</TableCell>
-                  </TableRow>
+                    <TableRow>
+                      <TableCell>Start Page</TableCell>
+                      <TableCell>{order.startPage}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>End Page</TableCell>
+                      <TableCell>{order.endPage}</TableCell>
+                    </TableRow>
                   </>
                 )}
                 {order.pageSelection === "custom" && (
                   <>
-                  <TableRow>
-                    <TableCell>Custom Pages</TableCell>
-                    <TableCell>{order.customPages}</TableCell>
-                  </TableRow>
+                    <TableRow>
+                      <TableCell>Custom Pages</TableCell>
+                      <TableCell>{order.customPages}</TableCell>
+                    </TableRow>
                   </>
                 )}
                 <TableRow>
@@ -201,7 +187,7 @@ const YourCart = () => {
                 <TableRow>
                   <TableCell className="font-bold">Total Amount</TableCell>
                   <TableCell className="font-bold">
-                    ₹{totalAmount.toFixed(2)}
+                    ₹{order.totalAmount.toFixed(2)}
                   </TableCell>
                 </TableRow>
               </TableFooter>

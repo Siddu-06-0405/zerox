@@ -25,7 +25,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     socket.on("orders_update", (updatedOrders) => {
-      console.log("Orders updated:", updatedOrders);
+      // console.log("Orders updated:", updatedOrders);
       setOrders(updatedOrders);
     });
 
@@ -63,6 +63,7 @@ const AdminDashboard = () => {
 
         const data = await response.json();
         setOrders(data);
+        console.log(data)
       } catch (error) {
         console.error("Failed to fetch orders:", error.message);
       }
@@ -136,7 +137,7 @@ const AdminDashboard = () => {
   };
 
   const handleConfirm = async () => {
-    console.log("Updating order:", selectedOrderId, "to", selectedStatus);
+    // console.log("Updating order:", selectedOrderId, "to", selectedStatus);
     try {
       await admin(selectedOrderId, selectedStatus);
       setIsModalOpen(false);

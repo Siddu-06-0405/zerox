@@ -2,18 +2,26 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import io from "socket.io-client";
 
-const user = JSON.parse(localStorage.getItem("print-user"));
-const socket = io("http://localhost:5001",{
-  withCredentials: true,
-  auth: {
-    token: user.token, 
-  },
-});
-
 const UserDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [totalOrders, setTotalOrders] = useState(0);
   const [slots, setSlots] = useState([]);
+
+  // Get user from localStorage
+  const user = JSON.parse(localStorage.getItem("print-user"));
+
+  // Make sure the user exists and has a token
+  if (!user || !user.token) {
+    toast.error("You need to log in first!");
+    return null; // or redirect to login page
+  }
+
+  const socket = io("http://localhost:5001", {
+    withCredentials: true,
+    auth: {
+      token: user.token,
+    },
+  });
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -35,10 +43,10 @@ const UserDashboard = () => {
 
   useEffect(() => {
     socket.on("orderCountUpdate", (count) => {
-      console.log("📥 Received updated order count:", count); // Debugging log
+      // console.log("📥 Received updated order count:", count); // Debugging log
       setTotalOrders(count);
     });
-  
+
     return () => {
       socket.off("orderCountUpdate");
     };
@@ -47,12 +55,6 @@ const UserDashboard = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem("print-user"));
-
-        if (!user || !user.token) {
-          toast.error("You need to log in first!");
-          return;
-        }
         const response = await fetch("http://localhost:5001/api/orders/ongoing-orders", {
           method: "GET",
           credentials: "include",
@@ -73,7 +75,7 @@ const UserDashboard = () => {
     };
 
     fetchOrders();
-  }, []);
+  }, [user.token]);
 
   return (
     <div className="flex flex-col items-center p-4">
@@ -109,7 +111,7 @@ const UserDashboard = () => {
               <tr key={order._id} className="bg-white">
                 <td className="border p-2">{order._id}</td>
                 <td className="border p-2">{new Date(order.createdAt).toLocaleString()}</td>
-                <td className="border p-2">{order.estimatedTime/60}</td>
+                <td className="border p-2">{order.estimatedTime / 60}</td>
               </tr>
             ))}
           </tbody>

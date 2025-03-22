@@ -17,6 +17,8 @@ import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
 import MyOrders from "./pages/MyOrders";
 import SlotSelection from "./pages/Slots";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import ChangeEmailAndPassword from "./pages/ChangeEmailAndPassword";
 
 
 const App = () => {
@@ -111,12 +113,20 @@ const App = () => {
             element={authUser && booleanFileData ? <YourCart messages={booleanFileData}/> : <Navigate to="/login" />}
           />
           <Route
+            path="/paymentsuccess"
+            element={authUser ? <PaymentSuccess /> : <Navigate to="/login" />}
+          />
+          <Route
             path="/ongoing"
             element={authUser ? <Ongoing messages={booleanFileData}/> : <Navigate to="/login" />}
           />
           <Route
             path="/my-orders"
             element={authUser ? <MyOrders /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/change-details"
+            element={authUser ? <ChangeEmailAndPassword /> : <Navigate to="/login" />}
           />
           <Route
             path="/admindashboard"
