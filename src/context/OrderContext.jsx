@@ -55,9 +55,17 @@ export const OrderProvider = ({ children }) => {
 
   // ✅ Update Pricing when pages, color, or copies change
   useEffect(() => {
-    const pricePerPage = order.colorOption === "Black & White" ? 1 : 3;
+    const pricePerPage = order.colorOption === "Black & White" ? 2 : 3;
     const offlineCharge = order.copyNumber * pricePerPage * order.totalNoOfPages;
-    const serviceCharge = Math.ceil(offlineCharge/5)===1?2:Math.ceil(offlineCharge/5)*1.5+0.5;
+    let serviceCharge= Math.ceil(offlineCharge*0.15);
+    // const serviceCharge = Math.ceil(offlineCharge/5)===1?2:Math.ceil(offlineCharge/5)*1.5+0.5;
+    if(serviceCharge<1){
+      serviceCharge = 1;
+    }else if(1<serviceCharge<10){
+      serviceCharge= serviceCharge;
+    }else{
+      serviceCharge=10;
+    }
     const total = offlineCharge + serviceCharge;
 
     setOrder((prevOrder) => ({

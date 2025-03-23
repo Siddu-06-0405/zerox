@@ -63,6 +63,10 @@ const App = () => {
             element={authUser ? <MyOrders /> : <Navigate to="/login" />}
           />
           <Route
+            path="/paymentsuccess"
+            element={authUser ? <PaymentSuccess /> : <Navigate to="/login" />}
+          />
+          <Route
             path="/admindashboard"
             element={authAdmin ? <AdminDashboard /> : <Navigate to="/adminlogin" />}
           />

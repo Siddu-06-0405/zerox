@@ -57,7 +57,7 @@ const YourCart = () => {
     try {
       // Convert file to Base64 for session storage
       const base64File = await fileToBase64(order.file);
-      sessionStorage.setItem("pending-file", base64File);
+      localStorage.setItem("pending-file", base64File); // Use localStorage instead
 
       // Store order details excluding the file
       const storedOrder = {

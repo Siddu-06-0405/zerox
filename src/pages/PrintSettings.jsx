@@ -82,7 +82,7 @@ const PrintSettings = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Single side">Single side</SelectItem>
-                  <SelectItem value="Double side">Double side</SelectItem>
+                  {/* <SelectItem value="Double side">Double side</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
@@ -99,7 +99,7 @@ const PrintSettings = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Black & White">Black & White</SelectItem>
-                  <SelectItem value="Color">Color</SelectItem>
+                  {/* <SelectItem value="Color">Color</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>

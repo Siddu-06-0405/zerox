@@ -13,24 +13,26 @@ import { CheckCircle } from "lucide-react";
 import { useOrder } from "../context/OrderContext";
 import { toast } from "sonner";
 
-const API_URL = "http://localhost:5001";
-
-const generateOTP = () => Math.floor(1000 + Math.random() * 9000);
-
 const PaymentSuccess = () => {
   const searchQuery = useSearchParams()[0];
   const referenceNum = searchQuery.get("reference");
   const navigate = useNavigate();
   const { updateOrder } = useOrder();
 
+  const generateOTP = () => Math.floor(1000 + Math.random() * 9000);
+
   const successfullFunc = async () => {
     const user = JSON.parse(localStorage.getItem("print-user"));
     const savedOrder = JSON.parse(localStorage.getItem("pending-order"));
-    const fileData = sessionStorage.getItem("pending-file");
+    const fileData = localStorage.getItem("pending-file");
+
+    console.log("User:", user);
+    console.log("Token:", user?.token);
+    console.log("Saved Order:", savedOrder);
+    console.log("File Data:", fileData);
 
     if (!user || !user.token || !savedOrder || !fileData) {
       toast.error("Order details missing. Please try again.");
-      navigate("/");
       return;
     }
 
@@ -68,18 +70,21 @@ const PaymentSuccess = () => {
     formData.append("order", JSON.stringify(orderData));
 
     try {
-      const response = await fetch(`${API_URL}/api/orders/place-order`, {
-        method: "POST",
-        credentials: "include",
-        headers: { Authorization: `Bearer ${user.token}` },
-        body: formData,
-      });
+      const response = await fetch(
+        `http://localhost:5001/api/orders/place-order`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { Authorization: `Bearer ${user.token}` },
+          body: formData,
+        }
+      );
 
       const data = await response.json();
       if (response.ok) {
         toast.success("Order placed successfully!");
         localStorage.removeItem("pending-order");
-        sessionStorage.removeItem("pending-file");
+        localStorage.removeItem("pending-file");
       } else {
         toast.error(data.message || "Failed to place order.");
       }
