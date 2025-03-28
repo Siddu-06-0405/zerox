@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useOrder } from "../context/OrderContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -23,15 +23,19 @@ import {
 } from "@/components/ui/table";
 import axios from "axios";
 
-const API_URL = "http://localhost:5001";
 
 const YourCart = () => {
   const { order, updateOrder } = useOrder();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!order) return;
+    saveOrderToDB(order);
+  }, [order]);
+
   if (!order) return <p>Loading order details...</p>;
 
-  const pricePerPage = order.colorOption === "Black & White" ? 1 : 3;
+  const pricePerPage = order.colorOption === "Black & White" ? 2 : 3;
   const offlineCharge = order.copyNumber * pricePerPage * order.totalNoOfPages;
   const serviceCharge =
     Math.ceil(offlineCharge / 5) === 1
@@ -47,35 +51,119 @@ const YourCart = () => {
     });
   };
 
-  const handleSubmitOrder = async () => {
-    const user = JSON.parse(localStorage.getItem("print-user"));
-    if (!user || !user.token) {
-      toast.error("You need to log in first!");
-      return;
-    }
-
-    try {
-      // Convert file to Base64 for session storage
-      const base64File = await fileToBase64(order.file);
-      localStorage.setItem("pending-file", base64File); // Use localStorage instead
-
-      // Store order details excluding the file
-      const storedOrder = {
-        ...order,
-        fileName: order.file.name,
+  const saveToDB = async (storeName, key, data) => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("PrintDB", 2);
+  
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName, { keyPath: "id" });
+        }
       };
-      localStorage.setItem("pending-order", JSON.stringify(storedOrder));
+  
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(storeName, "readwrite");
+  
+        transaction.onerror = () => {
+          console.error("Transaction error:", transaction.error);
+          reject(transaction.error);
+        };
+  
+        const store = transaction.objectStore(storeName);
+        const putRequest = store.put({ id: key, ...data });
+  
+        putRequest.onsuccess = () => {
+          console.log(`Order successfully saved: ${key}`);
+          resolve();
+        };
+  
+        putRequest.onerror = () => {
+          console.error("Error inserting into IndexedDB:", putRequest.error);
+          reject(putRequest.error);
+        };
+      };
+  
+      request.onerror = () => {
+        console.error("Failed to open IndexedDB:", request.error);
+        reject(request.error);
+      };
+    });
+  };
+  
 
+  const getFromDB = async (storeName, key) => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("PrintDB", 2);
+  
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName, { keyPath: "id" });
+        }
+      };
+  
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+  
+        // 🚨 Check if object store exists
+        if (!db.objectStoreNames.contains(storeName)) {
+          console.error(`Object store "${storeName}" not found.`);
+          reject(new Error(`Object store "${storeName}" does not exist.`));
+          return;
+        }
+  
+        const transaction = db.transaction(storeName, "readonly");
+        const store = transaction.objectStore(storeName);
+        const getRequest = store.get(key);
+  
+        getRequest.onsuccess = () => resolve(getRequest.result || null);
+        getRequest.onerror = (error) => reject(error);
+      };
+  
+      request.onerror = () => reject(request.error);
+    });
+  };
+  
+
+  const saveOrderToDB = async (order) => {
+    try {
+      console.log("Saving order:", order);
+  
+      // Directly save the file as a Blob (without converting to base64)
+      const orderData = { ...order, file: order.file };
+  
+      await saveToDB("orders", "pending-order", orderData);
+      console.log("Order saved successfully.");
+    } catch (error) {
+      console.error("Error saving order to IndexedDB:", error);
+    }
+  };
+  
+  
+
+  const handleSubmitOrder = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("print-user"));
+      if (!user || !user.token) {
+        toast.error("You need to log in first!");
+        return;
+      }
+  
+      const storedOrder = await getFromDB("orders", "pending-order");
+
+      if (!storedOrder) {
+        toast.error("Order data missing!");
+        return;
+      }
+  
       const userId = user._id;
-      const {
-        data: { key },
-      } = await axios.get(`${API_URL}/api/getkey`);
-      const {
-        data: { razorOrder },
-      } = await axios.post(`${API_URL}/api/payment/checkout`, {
+      const { data: { key } } = await axios.get(`http://localhost:5001/api/getkey`);
+      const { data: { razorOrder } } = await axios.post(`http://localhost:5001/api/payment/checkout`, {
         amount: order.totalAmount,
       });
-
+  
       const options = {
         key,
         amount: razorOrder.amount,
@@ -83,7 +171,7 @@ const YourCart = () => {
         name: "ZEROX",
         description: "Test Transaction",
         order_id: razorOrder.id,
-        callback_url: `${API_URL}/api/payment/payment-verification?userId=${userId}`,
+        callback_url: `http://localhost:5001/api/payment/payment-verification?userId=${userId}`,
         prefill: {
           name: user.name,
           email: user.email || "test@gmail.com",
@@ -91,14 +179,15 @@ const YourCart = () => {
         },
         theme: { color: "#050505" },
       };
-
+  
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      console.error("File conversion error:", error);
+      console.error("Error processing order:", error);
       toast.error("Failed to process the order.");
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
@@ -106,12 +195,10 @@ const YourCart = () => {
         <Card>
           <CardHeader>
             <CardTitle>Your Cart</CardTitle>
-            <CardDescription>
-              Review your order details before proceeding.
-            </CardDescription>
+            <CardDescription>Review your order details before proceeding.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
+          <Table>
               <TableCaption>Order Summary</TableCaption>
               <TableHeader>
                 <TableRow>
@@ -176,11 +263,11 @@ const YourCart = () => {
                 </TableRow>
                 <TableRow>
                   <TableCell>Offline Charge</TableCell>
-                  <TableCell>₹{offlineCharge}</TableCell>
+                  <TableCell>₹{order.offlineCharge}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell>Service Charge</TableCell>
-                  <TableCell>₹{serviceCharge.toFixed(2)}</TableCell>
+                  <TableCell>₹{order.serviceCharge.toFixed(2)}</TableCell>
                 </TableRow>
               </TableBody>
               <TableFooter>
@@ -197,9 +284,6 @@ const YourCart = () => {
             <Button onClick={handleSubmitOrder} className="w-full">
               Proceed to Pay
             </Button>
-            <p className="text-xs text-gray-500">
-              If you need to modify your order, go back and update the details.
-            </p>
           </CardFooter>
         </Card>
       </div>

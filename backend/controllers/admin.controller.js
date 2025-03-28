@@ -1,5 +1,5 @@
 import Admin from "../models/admin.model.js";
-import generateTokenAndSetcookie from "../utils/generateAdminToken.js";
+import generateTokenAndSetcookieAdmin from "../utils/generateAdminToken.js";
 import fs from "fs"
 
 export const login = async (req, res) => {
@@ -12,7 +12,7 @@ export const login = async (req, res) => {
         }
 
         // ✅ Generate a token
-        const token = generateTokenAndSetcookie(user._id, res);
+        const token = generateTokenAndSetcookieAdmin(user._id, res);
 
         res.status(200).json({
             _id: user._id,

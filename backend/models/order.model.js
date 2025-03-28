@@ -5,6 +5,7 @@ const orderSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     filePath: { type: String, required: true }, // Stores the file location
     fileName: { type: String, required: true }, // Stores the actual file name
+    razorpay_payment_id: { type: String, required: true },
     copyNumber: { type: Number, required: true },
     printType: { type: String, required: true, enum: ["Single side", "Double side"] },
     colorOption: { type: String, required: true, enum: ["Black & White", "Color"] },

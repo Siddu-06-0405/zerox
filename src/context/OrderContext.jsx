@@ -12,8 +12,10 @@ export const OrderProvider = ({ children }) => {
     startPage: null,
     endPage: null,
     maxPage: 0,
-    totalNoOfPages: 0,
     pageSelection: "all", // ✅ Store page selection
+    totalNoOfPages: 0,
+    serviceCharge: null,
+    offlineCharge: null,
     customPages: "", // ✅ For custom input pages
     recordPapers: 0,
     departments: {},
@@ -71,6 +73,8 @@ export const OrderProvider = ({ children }) => {
     setOrder((prevOrder) => ({
       ...prevOrder,
       totalAmount: total,
+      offlineCharge: offlineCharge,
+      serviceCharge: serviceCharge
     }));
   }, [order.totalNoOfPages, order.colorOption, order.copyNumber]);
 

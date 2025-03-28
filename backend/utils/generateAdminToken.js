@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 const generateTokenAndSetcookieAdmin = (userId, res)=>{
+    console.log("JWT_SECRET_ADMIN at Token Generation:", process.env.JWT_SECRET_ADMIN);
     const token = jwt.sign({userId},process.env.JWT_SECRET_ADMIN,{
         expiresIn: '15d'
     });

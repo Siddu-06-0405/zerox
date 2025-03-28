@@ -79,6 +79,7 @@ const MyOrders = () => {
                     <TableHead>Submitted Time</TableHead>
                     <TableHead>Estimated Time</TableHead>
                     <TableHead>Total Amount</TableHead>
+                    <TableHead>Payment id</TableHead>
                     <TableHead>OTP</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
@@ -92,13 +93,14 @@ const MyOrders = () => {
                       </TableCell>
                       <TableCell>{order.estimatedTime || "N/A"}</TableCell>
                       <TableCell>₹{order.totalAmount}</TableCell>
+                      <TableCell>{order.razorpay_payment_id}</TableCell>
                       <TableCell>
                         <span className="text-lg font-semibold">
                           {otpVisibility[order._id] ? order.otp : "••••••"}
                         </span>
                         <button
                           onClick={() => toggleOtpVisibility(order._id)}
-                          className="ml-2 p-2 bg-white rounded-full shadow"
+                          className="ml-2 p-2 rounded-full shadow"
                         >
                           {otpVisibility[order._id] ? (
                             <EyeOff size={16} />

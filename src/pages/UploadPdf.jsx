@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 import * as pdfjsLib from "pdfjs-dist/build/pdf";
-
 import pdfWorker from "pdfjs-dist/build/pdf.worker?url"; 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -24,6 +23,13 @@ export default function UploadPdf() {
   const [pageCount, setPageCount] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    indexedDB.databases().then((databases) => {
+      databases.forEach((db) => indexedDB.deleteDatabase(db.name));
+      console.log("All IndexedDB databases deleted.");
+    });
+  }, []);
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
@@ -40,15 +46,15 @@ export default function UploadPdf() {
         const pdfData = new Uint8Array(e.target.result);
         const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
 
-        const totalPages = pdf.numPages; // ✅ Extract total pages
-        setPageCount(totalPages); // ✅ Update local state
+        const totalPages = pdf.numPages;
+        setPageCount(totalPages);
 
         updateOrder({
           ...order,
           file,
           filename: file.name,
-          maxPage: totalPages, // ✅ Store total pages in OrderContext
-          totalNoOfPages: totalPages, // ✅ Default to total pages
+          maxPage: totalPages,
+          totalNoOfPages: totalPages,
         });
 
         setLoading(false);
@@ -65,7 +71,6 @@ export default function UploadPdf() {
       toast.error("Please upload a PDF before proceeding.");
       return;
     }
-
     navigate("/settings");
   };
 

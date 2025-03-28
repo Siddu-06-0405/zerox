@@ -22,7 +22,10 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage }).single("file");
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // Set limit to 50MB
+});
 
 export const createOrder = async (req, res) => {
   try {
@@ -75,7 +78,7 @@ export const createOrder = async (req, res) => {
 
 export const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find().populate("user", "username");
+    const orders = await Order.find();
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
